@@ -11,5 +11,13 @@ import lombok.Setter;
 @Setter
 @AllArgsConstructor
 public class AddressModel {
+    private String cep;
 
+    private String address;
+
+    private String neighborhood;
+
+    private String city;
+
+    private String state;
 }
