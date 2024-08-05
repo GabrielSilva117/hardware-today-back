@@ -1,4 +1,12 @@
+com/hardware_today/repository/UserRepository.class
+com/hardware_today/entity/ProductEntity.class
+com/hardware_today/entity/AddressEntity.class
+com/hardware_today/entity/UserEntity.class
+com/hardware_today/model/UserModel.class
 com/hardware_today/repository/ProductRepository.class
 com/hardware_today/EcommerceApplication.class
 com/hardware_today/controller/ProductController.class
-com/hardware_today/entity/Product.class
+com/hardware_today/controller/UserController.class
+com/hardware_today/service/UserService.class
+com/hardware_today/repository/AddressRepository.class
+com/hardware_today/model/AddressModel.class
