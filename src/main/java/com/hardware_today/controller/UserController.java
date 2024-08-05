@@ -10,5 +10,19 @@ import java.util.List;
 @RestController
 @RequestMapping("/user")
 public class UserController {
+    private final UserService userService;
 
+    @Autowired
+    public UserController(UserService userService) {
+        this.userService = userService;
+    }
+    @PostMapping
+    public UserModel createUser(@RequestBody UserModel user) {
+        try {
+            return userService.saveUser(user);
+        } catch (Exception e) {
+            e.printStackTrace();
+            return null;
+        }
+    }
 }
