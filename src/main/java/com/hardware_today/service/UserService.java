@@ -6,6 +6,8 @@ import com.hardware_today.repository.UserRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
+import java.util.Optional;
+
 @Service
 public class UserService {
     private final UserRepository userRepository;
@@ -25,6 +27,18 @@ public class UserService {
             e.printStackTrace();
             throw e;
         }
+    }
+
+    public String validateUser(UserModel user) throws Exception {
+        Optional<UserEntity> targetUser = userRepository.findByEmail(user.getEmail());
+
+        if (targetUser.isEmpty()) {
+            return "There is no user with the email " + user.getEmail();
+        } else if (!targetUser.get().getPassword().equals(user.getPassword())) {
+            return "Wrong password";
+        }
+
+        return "Sign in successful";
     }
 
 }
