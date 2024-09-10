@@ -10,3 +10,4 @@ com/hardware_today/controller/UserController.class
 com/hardware_today/service/UserService.class
 com/hardware_today/repository/AddressRepository.class
 com/hardware_today/model/AddressModel.class
+com/hardware_today/WebConfig.class
