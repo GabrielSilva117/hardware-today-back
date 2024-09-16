@@ -18,15 +18,15 @@ public class ProductEntity {
     @GeneratedValue(strategy = GenerationType.UUID)
     private UUID id;
 
-    private String name;
-
-    private double price;
-
-    private String description;
-
     @ManyToOne(optional = false)
     private CategoryEntity category;
 
     @ManyToOne(optional = false)
     private BrandEntity brand;
+
+    private String name;
+
+    private double price;
+
+    private String description;
 }
