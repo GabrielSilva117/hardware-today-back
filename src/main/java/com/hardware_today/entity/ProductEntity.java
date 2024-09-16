@@ -20,5 +20,8 @@ public class ProductEntity {
     private String name;
     private double price;
     @ManyToOne(optional = false)
+    private CategoryEntity category;
+
+    @ManyToOne(optional = false)
     private BrandEntity brand;
 }
