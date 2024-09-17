@@ -8,7 +8,7 @@ import lombok.Setter;
 
 import java.util.UUID;
 
-@Entity
+@Entity(name = "category")
 @Getter
 @Setter
 @AllArgsConstructor

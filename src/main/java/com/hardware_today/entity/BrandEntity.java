@@ -8,7 +8,7 @@ import lombok.Setter;
 
 import java.util.UUID;
 
-@Entity
+@Entity(name = "brand")
 @Getter
 @Setter
 @AllArgsConstructor
