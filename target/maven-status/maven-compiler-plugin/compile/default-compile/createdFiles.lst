@@ -9,6 +9,7 @@ com/hardware_today/repository/ProductRepository.class
 com/hardware_today/entity/CategoryEntity.class
 com/hardware_today/EcommerceApplication.class
 com/hardware_today/controller/ProductController.class
+com/hardware_today/model/ProductFilterModel.class
 com/hardware_today/controller/UserController.class
 com/hardware_today/service/UserService.class
 com/hardware_today/repository/AddressRepository.class
