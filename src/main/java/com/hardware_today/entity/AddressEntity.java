@@ -1,6 +1,7 @@
 package com.hardware_today.entity;
 
 import com.hardware_today.model.AddressModel;
+
 import jakarta.persistence.Entity;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;

@@ -1,12 +1,13 @@
 package com.hardware_today.service;
 
-import com.hardware_today.entity.UserEntity;
-import com.hardware_today.model.UserModel;
-import com.hardware_today.repository.UserRepository;
+import java.util.Optional;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
-import java.util.Optional;
+import com.hardware_today.entity.UserEntity;
+import com.hardware_today.model.UserModel;
+import com.hardware_today.repository.UserRepository;
 
 @Service
 public class UserService {

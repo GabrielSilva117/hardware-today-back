@@ -1,12 +1,13 @@
 package com.hardware_today.service;
 
+import java.util.Date;
+import java.util.function.Function;
+
+import org.springframework.stereotype.Service;
+
 import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.SignatureAlgorithm;
-import org.springframework.stereotype.Service;
-
-import java.util.Date;
-import java.util.function.Function;
 
 @Service
 public class JwtUtil {
