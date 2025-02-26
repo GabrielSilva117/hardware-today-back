@@ -1,18 +1,18 @@
-package com.hardware_today.service;
+package utils;
 
 import java.util.Date;
 import java.util.function.Function;
 
-import org.springframework.stereotype.Service;
+import org.springframework.beans.factory.annotation.Value;
 
 import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.SignatureAlgorithm;
 
-@Service
 public class JwtUtil {
-    private final String SECRET_KEY = "secret";
-
+	@Value("${jwt.secret}")
+    private String SECRET_KEY;
+	
     public String extractUsername(String token) {
         return extractClaim(token, Claims::getSubject);
     }
@@ -21,8 +21,8 @@ public class JwtUtil {
         return extractClaim(token, Claims::getExpiration);
     }
 
-    public String generateToken(String token) {
-        return createToken(token);
+    public String generateToken(Long subject, String email) {
+        return createToken(subject, email);
     }
 
     public <T> T extractClaim(String token, Function<Claims, T> claimsResolver) {
@@ -34,8 +34,11 @@ public class JwtUtil {
         return Jwts.parser().setSigningKey(SECRET_KEY).parseClaimsJws(token).getBody();
     }
 
-    private String createToken(String subject) {
-        return Jwts.builder().setSubject(subject).setIssuedAt(new Date(System.currentTimeMillis()))
+    private String createToken(Long subject, String issuerEmail) {
+        return Jwts.builder()
+        		.setSubject(subject.toString())
+        		.setIssuer(issuerEmail)
+        		.setIssuedAt(new Date(System.currentTimeMillis()))
                 .setExpiration(new Date(System.currentTimeMillis() * 1000 * 60 * 60 * 10))
                 .signWith(SignatureAlgorithm.HS256, SECRET_KEY).compact();
     }
