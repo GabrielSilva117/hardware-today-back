@@ -2,6 +2,7 @@ package com.hardware_today.entity;
 
 import org.hibernate.annotations.Cascade;
 import org.hibernate.annotations.CascadeType;
+import org.springframework.security.crypto.bcrypt.BCrypt;
 
 import com.hardware_today.model.UserModel;
 
@@ -27,7 +28,7 @@ public class UserEntity {
         this.firstName = model.getFirstName();
         this.lastName = model.getLastName();
         this.email = model.getEmail();
-        this.password = model.getPassword();
+        this.password = hashPassword(model.getPassword());
         this.phone = model.getPhone();
         this.address = new AddressEntity(model.getAddress());
     }
@@ -50,4 +51,12 @@ public class UserEntity {
     @Cascade(CascadeType.ALL)
     @JoinColumn(name = "address_id", referencedColumnName = "id")
     private AddressEntity address;
+    
+    private String hashPassword(String password) {
+    	return BCrypt.hashpw(password, BCrypt.gensalt());
+    }
+    
+    public Boolean checkPassword(String rawPWord) {
+    	return BCrypt.checkpw(rawPWord, this.password);
+    }
 }
