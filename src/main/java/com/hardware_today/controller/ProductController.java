@@ -12,7 +12,7 @@ import com.hardware_today.entity.ProductEntity;
 import com.hardware_today.model.ProductFilterModel;
 import com.hardware_today.repository.ProductRepository;
 
-import utils.ServiceUtils;
+import com.hardware_today.utils.ServiceUtils;
 
 @RestController
 @RequestMapping("/products")
