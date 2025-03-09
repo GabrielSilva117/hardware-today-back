@@ -11,6 +11,6 @@ import com.hardware_today.entity.UserEntity;
 @Repository
 public interface UserRepository extends JpaRepository<UserEntity, Long> {
 
-    @Query("SELECT user FROM UserEntity user WHERE user.email = :email")
+    @Query("SELECT user FROM users user WHERE user.email = :email")
     Optional<UserEntity> findByEmail(String email);
 }

@@ -12,7 +12,7 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 
-@Entity(name = "brand")
+@Entity(name = "brands")
 @Getter
 @Setter
 @AllArgsConstructor
