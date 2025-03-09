@@ -1,7 +1,8 @@
 package com.hardware_today.controller;
 
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -21,22 +22,22 @@ public class UserController {
     }
 
     @PostMapping("/login")
-    public String validateUser(@RequestBody UserModel user) {
+    public ResponseEntity<String> validateUser(@RequestBody UserModel user) {
         try {
             return userService.validateUser(user);
         } catch (Exception e) {
             e.printStackTrace();
-            return null;
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Login failed! Try again...");
         }
     }
 
     @PostMapping("/register")
-    public UserModel createUser(@RequestBody UserModel user) {
+    public ResponseEntity<String> createUser(@RequestBody UserModel user) {
         try {
             return userService.saveUser(user);
         } catch (Exception e) {
             e.printStackTrace();
-            return null;
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("User registration failed!");
         }
     }
 }
