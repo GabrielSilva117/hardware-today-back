@@ -20,7 +20,7 @@ public class UserController {
         this.userService = userService;
     }
 
-    @GetMapping
+    @PostMapping("/login")
     public String validateUser(@RequestBody UserModel user) {
         try {
             return userService.validateUser(user);
@@ -30,7 +30,7 @@ public class UserController {
         }
     }
 
-    @PostMapping
+    @PostMapping("/register")
     public UserModel createUser(@RequestBody UserModel user) {
         try {
             return userService.saveUser(user);
