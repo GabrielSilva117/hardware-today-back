@@ -52,4 +52,14 @@ public class UserController {
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("User registration failed!");
         }
     }
+    
+    @PostMapping("/role")
+    public ResponseEntity<String> createRole(@RequestBody String roleName) {
+    	try {
+    		return userService.createRole(roleName);
+    	} catch (Exception e) {
+    		e.printStackTrace();
+    		return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Role registration failed!");
+    	}
+    }
 }

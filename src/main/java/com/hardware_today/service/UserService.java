@@ -85,7 +85,12 @@ public class UserService {
     	
     	return authRes;
     }
+    
+    public ResponseEntity<String> createRole(String roleName) throws Exception {
+    	Role role = new Role(roleName);
+    	roleRepository.save(role);
+    	
+    	return ResponseEntity.ok("Role created successfully!");
     }
-
 }
 
