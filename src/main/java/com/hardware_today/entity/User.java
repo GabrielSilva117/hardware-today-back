@@ -37,7 +37,8 @@ public class User {
         this.email = model.getEmail();
         this.password = hashPassword(model.getPassword());
         this.phone = model.getPhone();
-        this.address = new AddressEntity(model.getAddress());
+        this.address = new Address(model.getAddress());
+        this.enabled = true;
     }
 
     @Id
@@ -48,12 +49,16 @@ public class User {
 
     private String lastName;
 
+    @Column(unique = true)
     private String email;
 
     private String phone;
 
     private String password;
-
+    
+    @ColumnDefault("true")
+    private boolean enabled;
+    
     @OneToOne(fetch = FetchType.LAZY)
     @Cascade(CascadeType.ALL)
     @JoinColumn(name = "address_id", referencedColumnName = "id")
