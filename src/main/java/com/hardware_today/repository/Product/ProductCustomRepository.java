@@ -4,8 +4,8 @@ import java.math.BigDecimal;
 import java.util.List;
 import java.util.UUID;
 
-import com.hardware_today.entity.ProductEntity;
+import com.hardware_today.entity.Product;
 
 public interface ProductCustomRepository {
-	public List<ProductEntity> getAllProducts(List<UUID> brands,  List<UUID> categories, BigDecimal minPrice, BigDecimal maxPrice); 
+	public List<Product> getAllProducts(List<UUID> brands,  List<UUID> categories, BigDecimal minPrice, BigDecimal maxPrice); 
 }

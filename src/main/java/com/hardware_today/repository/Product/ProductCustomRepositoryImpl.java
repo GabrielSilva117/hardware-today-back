@@ -4,7 +4,7 @@ import java.math.BigDecimal;
 import java.util.List;
 import java.util.UUID;
 
-import com.hardware_today.entity.ProductEntity;
+import com.hardware_today.entity.Product;
 
 import jakarta.persistence.EntityManager;
 import jakarta.persistence.PersistenceContext;
@@ -18,13 +18,13 @@ public class ProductCustomRepositoryImpl implements ProductCustomRepository {
 	EntityManager entityManager;
 	
 	@Override
-	public List<ProductEntity> getAllProducts(List<UUID> brands,  List<UUID> categories, BigDecimal minPrice, BigDecimal maxPrice) {
+	public List<Product> getAllProducts(List<UUID> brands,  List<UUID> categories, BigDecimal minPrice, BigDecimal maxPrice) {
 		
 		CriteriaBuilder cb = entityManager.getCriteriaBuilder();
 		
-		CriteriaQuery<ProductEntity> query = cb.createQuery(ProductEntity.class);
+		CriteriaQuery<Product> query = cb.createQuery(Product.class);
 		
-		Root<ProductEntity> product = query.from(ProductEntity.class);
+		Root<Product> product = query.from(Product.class);
 		
 		Predicate predicate = cb.conjunction();
 		
