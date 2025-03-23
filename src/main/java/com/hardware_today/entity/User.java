@@ -59,6 +59,15 @@ public class User {
     @JoinColumn(name = "address_id", referencedColumnName = "id")
     private Address address;
     
+    @ManyToMany(fetch = FetchType.LAZY)
+    @Cascade(CascadeType.ALL)
+    @JoinTable(
+    			name = "user_roles",
+    			joinColumns = @JoinColumn(name="user_id"),
+    			inverseJoinColumns = @JoinColumn(name="role_id")
+    		)
+    private Set<Role> roles;
+    
     private String hashPassword(String password) {
     	return BCrypt.hashpw(password, BCrypt.gensalt());
     }
