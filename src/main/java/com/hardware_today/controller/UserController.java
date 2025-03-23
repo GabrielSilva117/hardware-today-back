@@ -5,9 +5,11 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestHeader;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
+import com.hardware_today.dto.AuthResponse;
 import com.hardware_today.model.UserModel;
 import com.hardware_today.service.UserService;
 
@@ -22,13 +24,23 @@ public class UserController {
     }
 
     @PostMapping("/login")
-    public ResponseEntity<String> validateUser(@RequestBody UserModel user) {
+    public ResponseEntity<AuthResponse> validateUser(@RequestBody UserModel user) {
         try {
-            return userService.validateUser(user);
+            return ResponseEntity.ok(userService.validateUser(user));
         } catch (Exception e) {
             e.printStackTrace();
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Login failed! Try again...");
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(new AuthResponse("Login failed! Try again..."));
         }
+    }
+    
+    @PostMapping("/refresh-token")
+    public ResponseEntity<AuthResponse> refreshToken(@RequestHeader("Authorization") String refreshToken) {
+    	try {
+            return ResponseEntity.ok(userService.refreshAccessToken(refreshToken));
+    	} catch (Exception e) {
+    		e.printStackTrace();
+    		return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(new AuthResponse(e.getMessage()));
+    	}
     }
 
     @PostMapping("/register")

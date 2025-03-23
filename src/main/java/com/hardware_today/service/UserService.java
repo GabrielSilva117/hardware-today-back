@@ -1,14 +1,22 @@
 package com.hardware_today.service;
 
-import java.util.Optional;
-
+import org.apache.coyote.BadRequestException;
+//import org.apache.;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.authentication.AuthenticationManager;
+import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.userdetails.UserDetails;
+import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.stereotype.Service;
 
-import com.hardware_today.entity.UserEntity;
+import com.hardware_today.custom.controller_exceptions.UnauthorizedException;
+import com.hardware_today.dto.AuthResponse;
+import com.hardware_today.entity.Role;
+import com.hardware_today.entity.User;
 import com.hardware_today.model.UserModel;
+import com.hardware_today.repository.RoleRepository;
 import com.hardware_today.repository.UserRepository;
 
 import com.hardware_today.utils.JwtUtil;
@@ -18,16 +26,26 @@ public class UserService {
     private final UserRepository userRepository;
     
     private final JwtUtil jwtUtil;
+    
+    private final AuthenticationManager authManager;
+    
+    private final UserDetailsService userDetailsService;
+    
+    private final RoleRepository roleRepository;
 
     @Autowired
-    public UserService(UserRepository userRepository, JwtUtil jwtUtil) {
+    public UserService(UserRepository userRepository, JwtUtil jwtUtil, AuthenticationManager authManager, 
+    		UserDetailsService userDetailsService, RoleRepository roleRepository) {
         this.userRepository = userRepository;
         this.jwtUtil = jwtUtil;
+        this.authManager = authManager;
+        this.userDetailsService = userDetailsService;
+        this.roleRepository = roleRepository;
     }
 
     public ResponseEntity<String> saveUser(UserModel user) throws Exception {
         try {
-            UserEntity userEntity = new UserEntity(user);
+            User userEntity = new User(user);
             userRepository.save(userEntity);
             return ResponseEntity.ok("User created successfully!");
         } catch (Exception e) {
@@ -36,19 +54,37 @@ public class UserService {
         }
     }
 
-    public ResponseEntity<String> validateUser(UserModel user) throws Exception {
-        Optional<UserEntity> targetUser = userRepository.findByEmail(user.getEmail());
+    public AuthResponse validateUser(UserModel user) throws Exception {
+    	authManager.authenticate(new UsernamePasswordAuthenticationToken(user.getEmail(), user.getPassword()));    	
+    	UserDetails userDetails = userDetailsService.loadUserByUsername(user.getEmail());
+    	AuthResponse response = new AuthResponse();
+    	
+    	response.setAccessToken(jwtUtil.generateAccessToken(userDetails.getUsername(), userDetails.getUsername()));
+    	response.setRefreshToken(jwtUtil.generateRefreshToken(userDetails.getUsername(), userDetails.getUsername()));
+    	
+    	return response;
+    }
 
-        if (targetUser.isPresent()) {
-            UserEntity existingUser = targetUser.get();
-        	if (!existingUser.checkPassword(user.getPassword())) {
-        		return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("Wrong password");
-        	}
-        	
-        	 return ResponseEntity.ok(jwtUtil.generateToken(existingUser.getId(), existingUser.getEmail()));
-        };
-
-        return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("There is no user with the provided email");
+    public AuthResponse refreshAccessToken(String authHeader) throws Exception {
+    	AuthResponse authRes = new AuthResponse();
+    	
+    	if (authHeader == null || !authHeader.startsWith("Bearer ")) {
+    		throw new BadRequestException("The provided token is invalid!");
+    	}
+    	
+    	String token = authHeader.substring(7);
+    	String username = this.jwtUtil.extractUsername(token);
+    	
+    	if (username == null || !this.jwtUtil.validateToken(token, username)) {
+    		throw new UnauthorizedException("The refresh token expired! Login to generate a new one");
+    	}
+    	
+    	String accessToken = jwtUtil.generateAccessToken(username, username);
+    	
+    	authRes.setAccessToken(accessToken);
+    	
+    	return authRes;
+    }
     }
 
 }
