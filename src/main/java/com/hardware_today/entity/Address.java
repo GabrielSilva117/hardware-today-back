@@ -17,8 +17,8 @@ import lombok.Setter;
 @Setter
 @AllArgsConstructor
 @NoArgsConstructor
-public class AddressEntity {
-    public AddressEntity(AddressModel model) {
+public class Address {
+    public Address(AddressModel model) {
         this.cep = model.getCep();
         this.address = model.getAddress();
         this.neighborhood = model.getNeighborhood();

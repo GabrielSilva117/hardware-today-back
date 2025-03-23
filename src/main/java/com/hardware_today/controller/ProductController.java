@@ -8,7 +8,7 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
-import com.hardware_today.entity.ProductEntity;
+import com.hardware_today.entity.Product;
 import com.hardware_today.model.ProductFilterModel;
 import com.hardware_today.repository.ProductRepository;
 
@@ -22,7 +22,7 @@ public class ProductController {
     private ProductRepository productRepository;
 
     @PostMapping
-    public List<ProductEntity> getAllProducts(@RequestBody(required = false) ProductFilterModel filter) {
+    public List<Product> getAllProducts(@RequestBody(required = false) ProductFilterModel filter) {
         if (filter != null) {
             return productRepository.getAllProducts(
             		ServiceUtils.parseCommaSeparatedUUID(filter.getBrand()), 

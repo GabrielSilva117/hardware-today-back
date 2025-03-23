@@ -12,16 +12,16 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 
-@Entity(name = "categories")
+@Entity(name = "brands")
 @Getter
 @Setter
 @AllArgsConstructor
 @NoArgsConstructor
-public class CategoryEntity {
+public class Brand {
     @Id
     @GeneratedValue(strategy = GenerationType.UUID)
     private UUID id;
 
-    @Column(nullable = false, length = 20)
+    @Column(nullable = false, length = 30, unique = true)
     private String name;
 }

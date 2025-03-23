@@ -23,8 +23,8 @@ import lombok.Setter;
 @Setter
 @AllArgsConstructor
 @NoArgsConstructor
-public class UserEntity {
-    public UserEntity(UserModel model) {
+public class User {
+    public User(UserModel model) {
         this.firstName = model.getFirstName();
         this.lastName = model.getLastName();
         this.email = model.getEmail();
@@ -50,7 +50,7 @@ public class UserEntity {
     @OneToOne(fetch = FetchType.LAZY)
     @Cascade(CascadeType.ALL)
     @JoinColumn(name = "address_id", referencedColumnName = "id")
-    private AddressEntity address;
+    private Address address;
     
     private String hashPassword(String password) {
     	return BCrypt.hashpw(password, BCrypt.gensalt());

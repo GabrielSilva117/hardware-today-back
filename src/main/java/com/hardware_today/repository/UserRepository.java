@@ -6,11 +6,11 @@ import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.stereotype.Repository;
 
-import com.hardware_today.entity.UserEntity;
+import com.hardware_today.entity.User;
 
 @Repository
-public interface UserRepository extends JpaRepository<UserEntity, Long> {
+public interface UserRepository extends JpaRepository<User, Long> {
 
     @Query("SELECT user FROM users user WHERE user.email = :email")
-    Optional<UserEntity> findByEmail(String email);
+    Optional<User> findByEmail(String email);
 }

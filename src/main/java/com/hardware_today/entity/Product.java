@@ -17,16 +17,16 @@ import lombok.Setter;
 @Setter
 @AllArgsConstructor
 @NoArgsConstructor
-public class ProductEntity {
+public class Product {
     @Id
     @GeneratedValue(strategy = GenerationType.UUID)
     private UUID id;
 
     @ManyToOne(optional = false)
-    private CategoryEntity category;
+    private Category category;
 
     @ManyToOne(optional = false)
-    private BrandEntity brand;
+    private Brand brand;
 
     private String name;
 
