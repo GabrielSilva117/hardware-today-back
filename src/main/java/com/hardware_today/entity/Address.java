@@ -1,5 +1,7 @@
 package com.hardware_today.entity;
 
+import java.util.UUID;
+
 import com.hardware_today.model.AddressModel;
 
 import jakarta.persistence.Entity;
@@ -27,8 +29,8 @@ public class Address {
     }
 
     @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Long id;
+    @GeneratedValue(strategy = GenerationType.UUID)
+    private UUID id;
 
     private String cep;
 

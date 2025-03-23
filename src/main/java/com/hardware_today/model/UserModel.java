@@ -1,6 +1,8 @@
 package com.hardware_today.model;
 
 
+import java.util.UUID;
+
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
@@ -20,6 +22,8 @@ public class UserModel {
     private String phone;
 
     private String password;
+    
+    private UUID id;
 
     private AddressModel address;
 }
