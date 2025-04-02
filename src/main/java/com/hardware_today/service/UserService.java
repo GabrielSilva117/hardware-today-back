@@ -1,5 +1,7 @@
 package com.hardware_today.service;
 
+import java.util.Map;
+
 import org.apache.coyote.BadRequestException;
 //import org.apache.;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -20,6 +22,9 @@ import com.hardware_today.repository.RoleRepository;
 import com.hardware_today.repository.UserRepository;
 
 import com.hardware_today.utils.JwtUtil;
+
+import jakarta.servlet.http.Cookie;
+import jakarta.servlet.http.HttpServletResponse;
 
 @Service
 public class UserService {
@@ -53,37 +58,62 @@ public class UserService {
             throw e;
         }
     }
-
-    public AuthResponse validateUser(UserModel user) throws Exception {
-    	authManager.authenticate(new UsernamePasswordAuthenticationToken(user.getEmail(), user.getPassword()));    	
-    	UserDetails userDetails = userDetailsService.loadUserByUsername(user.getEmail());
-    	AuthResponse response = new AuthResponse();
-    	
-    	response.setAccessToken(jwtUtil.generateAccessToken(userDetails.getUsername(), userDetails.getUsername()));
-    	response.setRefreshToken(jwtUtil.generateRefreshToken(userDetails.getUsername(), userDetails.getUsername()));
-    	
-    	return response;
+    
+    public void addHttpOnlyCookie(String token, String cookieKey, Integer cookieMaxAge, HttpServletResponse response) {
+    	Cookie authCookie = new Cookie(cookieKey, token);
+    	authCookie.setHttpOnly(true);
+    	authCookie.setSecure(false); // --TODO add an env variable to change it to true in prd
+    	authCookie.setPath("/");
+    	authCookie.setMaxAge(cookieMaxAge);
+    	response.addCookie(authCookie);    	
+    }
+    
+    public void clearAuthCookie(String cookieKey, HttpServletResponse response) {
+    	addHttpOnlyCookie(null, cookieKey, 0, response);
     }
 
-    public AuthResponse refreshAccessToken(String authHeader) throws Exception {
+    public String validateUser(Map<String, String> user, HttpServletResponse res) throws Exception {
+    	authManager.authenticate(new UsernamePasswordAuthenticationToken(user.get("email"), user.get("password")));    	
+    	UserDetails userDetails = userDetailsService.loadUserByUsername(user.get("email"));
+//    	AuthResponse response = new AuthResponse();
+
+    	addHttpOnlyCookie(jwtUtil.generateAccessToken(userDetails.getUsername(), userDetails.getUsername()), "access_token", 900, res);
+    	addHttpOnlyCookie(jwtUtil.generateAccessToken(userDetails.getUsername(), userDetails.getUsername()), "refresh_token", 604800, res);
+    	
+//    	response.setAccessToken(jwtUtil.generateAccessToken(userDetails.getUsername(), userDetails.getUsername()));
+//    	response.setRefreshToken(jwtUtil.generateRefreshToken(userDetails.getUsername(), userDetails.getUsername()));
+    	
+    	return "You're now successfully logged in";
+    }
+
+    public String refreshAccessToken(String refreshToken, HttpServletResponse response) throws Exception {
     	AuthResponse authRes = new AuthResponse();
     	
-    	if (authHeader == null || !authHeader.startsWith("Bearer ")) {
-    		throw new BadRequestException("The provided token is invalid!");
-    	}
-    	
-    	String token = authHeader.substring(7);
-    	String username = this.jwtUtil.extractUsername(token);
-    	
-    	if (username == null || !this.jwtUtil.validateToken(token, username)) {
+//    	if (authHeader == null || !authHeader.startsWith("Bearer ")) {
+//    		throw new BadRequestException("The provided token is invalid!");
+//    	}
+//    	
+//    	String token = authHeader.substring(7);
+    	String username = this.jwtUtil.extractUsername(refreshToken);
+    		
+    	if (refreshToken == null || username == null || !this.jwtUtil.validateToken(refreshToken, username)) {
     		throw new UnauthorizedException("The refresh token expired! Login to generate a new one");
     	}
     	
-    	String accessToken = jwtUtil.generateAccessToken(username, username);
+    	addHttpOnlyCookie(jwtUtil.generateAccessToken(username, username), "access_token", 900, response);
     	
-    	authRes.setAccessToken(accessToken);
+//    	String accessToken = jwtUtil.generateAccessToken(username, username);
+//    	
+//    	authRes.setAccessToken(accessToken);
     	
-    	return authRes;
+    	return "The access token received a refresh";
+    }
+    
+    public String logoutUser(HttpServletResponse response) {
+    	clearAuthCookie("access_token", response);
+    	clearAuthCookie("refresh_token", response);
+    	
+    	return "Logout complete!";
     }
     
     public ResponseEntity<String> createRole(String roleName) throws Exception {
