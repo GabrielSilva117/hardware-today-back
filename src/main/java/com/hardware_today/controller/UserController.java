@@ -30,6 +30,10 @@ public class UserController {
         this.userService = userService;
     }
 
+    @GetMapping("/status")
+    public ResponseEntity<Boolean> checkSession() {
+		return ResponseEntity.ok(true);
+    }
     
     @PostMapping("/login")
     public ResponseEntity<String> validateUser(@RequestBody Map<String, String> credentials, HttpServletResponse response) {
