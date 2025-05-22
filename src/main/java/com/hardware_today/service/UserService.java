@@ -15,6 +15,7 @@ import org.springframework.stereotype.Service;
 
 import com.hardware_today.custom.controller_exceptions.UnauthorizedException;
 import com.hardware_today.dto.AuthResponse;
+import com.hardware_today.dto.UserDTO;
 import com.hardware_today.entity.Role;
 import com.hardware_today.entity.User;
 import com.hardware_today.model.UserModel;
@@ -59,9 +60,9 @@ public class UserService {
         }
     }
     
-    public void addHttpOnlyCookie(String token, String cookieKey, Integer cookieMaxAge, HttpServletResponse response) {
-    	Cookie authCookie = new Cookie(cookieKey, token);
-    	authCookie.setHttpOnly(true);
+    private void addCookie(String value, String cookieKey, Integer cookieMaxAge, HttpServletResponse response, boolean isHttpOnly) {
+    	Cookie authCookie = new Cookie(cookieKey, value);
+    	authCookie.setHttpOnly(isHttpOnly);
     	authCookie.setSecure(false); // --TODO add an env variable to change it to true in prd
     	authCookie.setPath("/");
     	authCookie.setMaxAge(cookieMaxAge);
@@ -69,16 +70,21 @@ public class UserService {
     }
     
     public void clearAuthCookie(String cookieKey, HttpServletResponse response) {
-    	addHttpOnlyCookie(null, cookieKey, 0, response);
+    	addCookie(null, cookieKey, 0, response, true);
     }
 
     public String validateUser(Map<String, String> user, HttpServletResponse res) throws Exception {
     	authManager.authenticate(new UsernamePasswordAuthenticationToken(user.get("email"), user.get("password")));    	
     	UserDetails userDetails = userDetailsService.loadUserByUsername(user.get("email"));
+    	
+    	UserDTO userDTO = getUserDTOByEmail(user.get("email"));
+    	
 //    	AuthResponse response = new AuthResponse();
+    	
+//    	addCookie();/;s
 
-    	addHttpOnlyCookie(jwtUtil.generateAccessToken(userDetails.getUsername(), userDetails.getUsername()), "access_token", 900, res);
-    	addHttpOnlyCookie(jwtUtil.generateAccessToken(userDetails.getUsername(), userDetails.getUsername()), "refresh_token", 604800, res);
+    	addCookie(jwtUtil.generateAccessToken(userDetails.getUsername(), userDetails.getUsername(), userDTO), "access_token", 900, res, true);
+    	addCookie(jwtUtil.generateRefreshToken(userDetails.getUsername(), userDetails.getUsername()), "refresh_token", 604800, res, true);
     	
 //    	response.setAccessToken(jwtUtil.generateAccessToken(userDetails.getUsername(), userDetails.getUsername()));
 //    	response.setRefreshToken(jwtUtil.generateRefreshToken(userDetails.getUsername(), userDetails.getUsername()));
@@ -95,18 +101,29 @@ public class UserService {
 //    	
 //    	String token = authHeader.substring(7);
     	String username = this.jwtUtil.extractUsername(refreshToken);
+    	
+    	UserDTO userDTO = getUserDTOByEmail(username);
     		
     	if (refreshToken == null || username == null || !this.jwtUtil.validateToken(refreshToken, username)) {
     		throw new UnauthorizedException("The refresh token expired! Login to generate a new one");
     	}
     	
-    	addHttpOnlyCookie(jwtUtil.generateAccessToken(username, username), "access_token", 900, response);
+    	addCookie(jwtUtil.generateAccessToken(username, username, userDTO), "access_token", 900, response, true);
     	
 //    	String accessToken = jwtUtil.generateAccessToken(username, username);
 //    	
 //    	authRes.setAccessToken(accessToken);
     	
     	return "The access token received a refresh";
+    }
+    
+    public UserDTO getUserDTOByEmail(String email) {
+    	User userEntity = getUserByEmail(email);
+    	return new UserDTO(userEntity.getId(), userEntity.getFirstName(), userEntity.getLastName());
+    }
+    
+    public User getUserByEmail(String email) {
+    	return this.userRepository.findByEmail(email).orElseThrow();
     }
     
     public String logoutUser(HttpServletResponse response) {
