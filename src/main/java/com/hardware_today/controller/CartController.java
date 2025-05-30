@@ -3,6 +3,8 @@ package com.hardware_today.controller;
 import java.util.List;
 import java.util.UUID;
 
+import org.springframework.http.HttpStatus;
+import org.springframework.http.HttpStatusCode;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.CookieValue;
@@ -11,6 +13,7 @@ import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
+import com.hardware_today.dto.CartDTO;
 import com.hardware_today.entity.Cart;
 import com.hardware_today.projections.CartProjection;
 import com.hardware_today.service.CartService;
@@ -35,7 +38,7 @@ public class CartController {
 	}
 	
 	@GetMapping("/user")
-	public ResponseEntity<List<CartProjection>> getCartByUser(@CookieValue(value="access_token", required=false) String accessToken) {
+	public ResponseEntity<List<CartDTO>> getCartByUser(@CookieValue(value="access_token", required=false) String accessToken) {
 		try {
 			return ResponseEntity.ok().body(cartService.extractUserCartByToken(accessToken));
 		} catch (Exception e) {

@@ -28,9 +28,9 @@ public class CartService {
 		return this.cartRepository.getByUser(userId).orElseThrow();
 	}
 	
-	public List<CartProjection> extractUserCartByToken(String token) {
+	public List<CartDTO> extractUserCartByToken(String token) {
 		UserDTO userDTO = this.jwtUtil.extractUserDTOClaim(token);
-		return getUserCarts(userDTO.getId());
+		return this.getCartDTO(this.getUserCarts(userDTO.getId()));
 	}
 	
 //	private HashMap<UUID, CartDTO> getCartDTO(List<CartProjection> carts) {
@@ -41,4 +41,19 @@ public class CartService {
 //		
 //		return null;
 //	}
+	private List<CartDTO> getCartDTO(List<CartProjection> carts) {
+		List<CartDTO> cartDTOList = new ArrayList<CartDTO>();
+		
+		
+		if (!carts.isEmpty()) {
+			 for (CartProjection cart : carts) {
+				 CartDTO cartDTO = new CartDTO(cart.getId(), cart.getEnabled(), cart.getProducts(), 0.0);
+				 cartDTO.setTotalPrice(cart.getProducts().stream().mapToDouble(ProductProjection::getPrice).sum());				 
+				 cartDTOList.add(cartDTO);
+			 }
+		}
+		
+		
+		return cartDTOList;
+	}
 }
