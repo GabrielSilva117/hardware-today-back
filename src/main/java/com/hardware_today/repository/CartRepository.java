@@ -19,4 +19,6 @@ public interface CartRepository extends JpaRepository<Cart, UUID> {
 	@Query("SELECT c FROM Cart c JOIN c.products p WHERE c.id = :id ORDER BY p.category.name")
 	Optional<CartProjection> getCartById(@Param("id") UUID id);
 	
+	@Query("SELECT c FROM Cart c JOIN c.products p WHERE c.user.id = :user AND c.enabled = true ORDER BY p.category.name")
+	Optional<CartProjection> getActiveCartByUser(@Param("user") UUID user);
 }

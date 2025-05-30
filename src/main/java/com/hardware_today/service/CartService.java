@@ -1,23 +1,33 @@
 package com.hardware_today.service;
 
+
+import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
 
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
+import com.hardware_today.dto.CartDTO;
 import com.hardware_today.dto.UserDTO;
+import com.hardware_today.entity.Cart;
+import com.hardware_today.entity.Product;
 import com.hardware_today.projections.CartProjection;
+import com.hardware_today.projections.ProductProjection;
 import com.hardware_today.repository.CartRepository;
+import com.hardware_today.repository.ProductRepository;
 import com.hardware_today.utils.JwtUtil;
 
 @Service
 public class CartService {
 	private final CartRepository cartRepository;
+	private final ProductRepository productRepository;
 	private final JwtUtil jwtUtil;
 	
-	public CartService(CartRepository cartRepository, JwtUtil jwtUtil) {
+	public CartService(CartRepository cartRepository, JwtUtil jwtUtil, ProductRepository productRepository) {
 		this.cartRepository = cartRepository;
 		this.jwtUtil = jwtUtil;
+		this.productRepository = productRepository;
 	}
 	
 	public CartProjection getCartById(UUID id) {
@@ -33,14 +43,19 @@ public class CartService {
 		return this.getCartDTO(this.getUserCarts(userDTO.getId()));
 	}
 	
-//	private HashMap<UUID, CartDTO> getCartDTO(List<CartProjection> carts) {
-//		for (CartProjection cart : carts) {
-//			
-//		}
-//		
-//		
-//		return null;
-//	}
+	@Transactional
+	public String addProductToCart(String token, UUID productId) {
+		UserDTO userDTO = this.jwtUtil.extractUserDTOClaim(token);
+		
+		Cart cart = cartRepository.findById(userDTO.getActiveCart()).orElseThrow();
+		Product product = productRepository.findById(productId).orElseThrow();
+		
+		cart.getProducts().add(product);
+		cartRepository.save(cart);
+		
+		return "Product added successfully";
+	}	
+	
 	private List<CartDTO> getCartDTO(List<CartProjection> carts) {
 		List<CartDTO> cartDTOList = new ArrayList<CartDTO>();
 		

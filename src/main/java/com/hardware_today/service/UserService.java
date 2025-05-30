@@ -1,6 +1,7 @@
 package com.hardware_today.service;
 
 import java.util.Map;
+import java.util.UUID;
 
 import org.apache.coyote.BadRequestException;
 //import org.apache.;
@@ -19,6 +20,8 @@ import com.hardware_today.dto.UserDTO;
 import com.hardware_today.entity.Role;
 import com.hardware_today.entity.User;
 import com.hardware_today.model.UserModel;
+import com.hardware_today.projections.CartProjection;
+import com.hardware_today.repository.CartRepository;
 import com.hardware_today.repository.RoleRepository;
 import com.hardware_today.repository.UserRepository;
 
@@ -31,6 +34,8 @@ import jakarta.servlet.http.HttpServletResponse;
 public class UserService {
     private final UserRepository userRepository;
     
+    private final CartRepository cartRepository;
+    
     private final JwtUtil jwtUtil;
     
     private final AuthenticationManager authManager;
@@ -41,12 +46,13 @@ public class UserService {
 
     @Autowired
     public UserService(UserRepository userRepository, JwtUtil jwtUtil, AuthenticationManager authManager, 
-    		UserDetailsService userDetailsService, RoleRepository roleRepository) {
+    		UserDetailsService userDetailsService, RoleRepository roleRepository, CartRepository cartRepository) {
         this.userRepository = userRepository;
         this.jwtUtil = jwtUtil;
         this.authManager = authManager;
         this.userDetailsService = userDetailsService;
         this.roleRepository = roleRepository;
+        this.cartRepository = cartRepository;
     }
 
     public ResponseEntity<String> saveUser(UserModel user) throws Exception {
@@ -119,7 +125,12 @@ public class UserService {
     
     public UserDTO getUserDTOByEmail(String email) {
     	User userEntity = getUserByEmail(email);
-    	return new UserDTO(userEntity.getId(), userEntity.getFirstName(), userEntity.getLastName());
+    	CartProjection cartProjection = getUserCart(userEntity.getId());
+    	return new UserDTO(userEntity.getId(), cartProjection.getId(), userEntity.getFirstName(), userEntity.getLastName());
+    }
+    
+    public CartProjection getUserCart(UUID userId) {
+    	return this.cartRepository.getActiveCartByUser(userId).orElseThrow();    	
     }
     
     public User getUserByEmail(String email) {
