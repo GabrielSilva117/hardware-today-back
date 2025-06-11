@@ -19,6 +19,8 @@ import com.hardware_today.entity.Cart;
 import com.hardware_today.projections.CartProjection;
 import com.hardware_today.service.CartService;
 
+import jakarta.servlet.http.HttpServletResponse;
+
 @RestController
 @RequestMapping("/cart")
 public class CartController {
@@ -49,9 +51,10 @@ public class CartController {
 	}
 	
 	@PostMapping("/add/{productId}")
-	public ResponseEntity<String> addProductToCart(@CookieValue(value="access_token", required=false) String accessToken, @PathVariable UUID productId) {
+	public ResponseEntity<String> addProductToCart(@CookieValue(value="access_token", required=false) String accessToken, 
+			@CookieValue(value="active_cart", required=false) UUID cartId, @PathVariable UUID productId, HttpServletResponse response) {
 		try {
-			return ResponseEntity.ok().body(cartService.addProductToCart(accessToken, productId));
+			return ResponseEntity.ok().body(cartService.addProductToCart(accessToken, productId, cartId, response));
 		} catch (Exception e) {
 			e.printStackTrace();
 			return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(e.getMessage());

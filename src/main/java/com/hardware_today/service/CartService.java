@@ -16,6 +16,7 @@ import com.hardware_today.projections.CartProjection;
 import com.hardware_today.projections.ProductProjection;
 import com.hardware_today.repository.CartRepository;
 import com.hardware_today.repository.ProductRepository;
+import com.hardware_today.utils.CookieHandler;
 import com.hardware_today.utils.JwtUtil;
 
 @Service
@@ -44,17 +45,24 @@ public class CartService {
 	}
 	
 	@Transactional
-	public String addProductToCart(String token, UUID productId) {
+	public String addProductToCart(String token, UUID productId, UUID cartId, HttpServletResponse response) {
 		UserDTO userDTO = this.jwtUtil.extractUserDTOClaim(token);
+		Cart cart = new Cart();
 		
-		Cart cart = cartRepository.findById(userDTO.getActiveCart()).orElseThrow();
+		if (cartId != null) cart = cartRepository.findById(cartId).orElse(cart);
+		
 		Product product = productRepository.findById(productId).orElseThrow();
+		
+		if (cart.getUser() == null) cart.setUser(entityManager.getReference(User.class, userDTO.getId()));
+		
 		
 		cart.getProducts().add(product);
 		cartRepository.save(cart);
 		
+		if (cartId == null || !cartId.equals(cart.getId())) CookieHandler.addCookie(cart.getId().toString(), "active_cart", 604800, response);
+		
 		return "Product added successfully";
-	}	
+	}
 	
 	private List<CartDTO> getCartDTO(List<CartProjection> carts) {
 		List<CartDTO> cartDTOList = new ArrayList<CartDTO>();
