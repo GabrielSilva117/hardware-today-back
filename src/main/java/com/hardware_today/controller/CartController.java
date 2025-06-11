@@ -60,4 +60,15 @@ public class CartController {
 			return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(e.getMessage());
 		}
 	}
+	
+	@DeleteMapping("/product/{productId}")
+	public ResponseEntity<String> removeProductFromCart(@CookieValue(value="active_cart", required=false) UUID cartId,
+			@PathVariable UUID productId, HttpServletResponse response) {
+		try {
+			return ResponseEntity.ok().body(cartService.removeProductFromCart(productId, cartId, response));
+		} catch (Exception e) {
+			e.printStackTrace();
+			return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(null);
+		}
+	}
 }

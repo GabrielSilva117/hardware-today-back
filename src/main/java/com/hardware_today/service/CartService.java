@@ -61,6 +61,24 @@ public class CartService {
 	}
 	
 	@Transactional
+	public String removeProductFromCart(UUID productId, UUID cartId, HttpServletResponse response) {
+		Cart cart = cartRepository.findById(cartId).orElseThrow();
+		Product product = productRepository.findById(productId).orElseThrow();
+		
+		cart.getProducts().remove(product);
+		
+		if (cart.getProducts().size() == 0) {
+			cartRepository.delete(cart);
+			clearActiveCartCookie(response);
+			return null;
+		}
+		
+		cartRepository.save(cart);
+		
+		return "Product removed successfully";
+	}
+	
+	@Transactional
 	public String addProductToCart(String token, UUID productId, UUID cartId, HttpServletResponse response) {
 		UserDTO userDTO = this.jwtUtil.extractUserDTOClaim(token);
 		Cart cart = new Cart();
