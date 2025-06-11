@@ -1,6 +1,7 @@
 package com.hardware_today.service;
 
 import java.util.Map;
+import java.util.Optional;
 import java.util.UUID;
 
 import org.apache.coyote.BadRequestException;
@@ -24,7 +25,7 @@ import com.hardware_today.projections.CartProjection;
 import com.hardware_today.repository.CartRepository;
 import com.hardware_today.repository.RoleRepository;
 import com.hardware_today.repository.UserRepository;
-
+import com.hardware_today.utils.CookieHandler;
 import com.hardware_today.utils.JwtUtil;
 
 import jakarta.servlet.http.Cookie;
@@ -43,7 +44,9 @@ public class UserService {
     private final UserDetailsService userDetailsService;
     
     private final RoleRepository roleRepository;
-
+    
+    
+    
     @Autowired
     public UserService(UserRepository userRepository, JwtUtil jwtUtil, AuthenticationManager authManager, 
     		UserDetailsService userDetailsService, RoleRepository roleRepository, CartRepository cartRepository) {
@@ -66,18 +69,21 @@ public class UserService {
         }
     }
     
-    private void addCookie(String value, String cookieKey, Integer cookieMaxAge, HttpServletResponse response, boolean isHttpOnly) {
-    	Cookie authCookie = new Cookie(cookieKey, value);
-    	authCookie.setHttpOnly(isHttpOnly);
-    	authCookie.setSecure(false); // --TODO add an env variable to change it to true in prd
-    	authCookie.setPath("/");
-    	authCookie.setMaxAge(cookieMaxAge);
-    	response.addCookie(authCookie);    	
+	/*
+	 * private void addCookie(String value, String cookieKey, Integer cookieMaxAge,
+	 * HttpServletResponse response) { Cookie authCookie = new Cookie(cookieKey,
+	 * value); authCookie.setHttpOnly(true); authCookie.setSecure(false); // --TODO
+	 * add an env variable to change it to true in prd authCookie.setPath("/");
+	 * authCookie.setMaxAge(cookieMaxAge); response.addCookie(authCookie); }
+	 */
+    
+    private void addCartCookie(UUID userId, HttpServletResponse response) {
+    	getUserCart(userId).ifPresent(cartProjection -> CookieHandler.addCookie(cartProjection.getId().toString(), "active_cart", 604800, response));
     }
     
-    public void clearAuthCookie(String cookieKey, HttpServletResponse response) {
-    	addCookie(null, cookieKey, 0, response, true);
-    }
+//    public void clearCookie(String cookieKey, HttpServletResponse response) {
+//    	addCookie(null, cookieKey, 0, response);
+//    }
 
     public String validateUser(Map<String, String> user, HttpServletResponse res) throws Exception {
     	authManager.authenticate(new UsernamePasswordAuthenticationToken(user.get("email"), user.get("password")));    	
@@ -89,8 +95,9 @@ public class UserService {
     	
 //    	addCookie();/;s
 
-    	addCookie(jwtUtil.generateAccessToken(userDetails.getUsername(), userDetails.getUsername(), userDTO), "access_token", 900, res, true);
-    	addCookie(jwtUtil.generateRefreshToken(userDetails.getUsername(), userDetails.getUsername()), "refresh_token", 604800, res, true);
+    	CookieHandler.addCookie(jwtUtil.generateAccessToken(userDetails.getUsername(), userDetails.getUsername(), userDTO), "access_token", 900, res);
+    	CookieHandler.addCookie(jwtUtil.generateRefreshToken(userDetails.getUsername(), userDetails.getUsername()), "refresh_token", 604800, res);
+    	addCartCookie(userDTO.getId(), res);
     	
 //    	response.setAccessToken(jwtUtil.generateAccessToken(userDetails.getUsername(), userDetails.getUsername()));
 //    	response.setRefreshToken(jwtUtil.generateRefreshToken(userDetails.getUsername(), userDetails.getUsername()));
@@ -110,11 +117,10 @@ public class UserService {
     	
     	UserDTO userDTO = getUserDTOByEmail(username);
     		
-    	if (refreshToken == null || username == null || !this.jwtUtil.validateToken(refreshToken, username)) {
+    	if (refreshToken == null || username == null || !this.jwtUtil.validateToken(refreshToken, username)) 
     		throw new UnauthorizedException("The refresh token expired! Login to generate a new one");
-    	}
     	
-    	addCookie(jwtUtil.generateAccessToken(username, username, userDTO), "access_token", 900, response, true);
+    	CookieHandler.addCookie(jwtUtil.generateAccessToken(username, username, userDTO), "access_token", 900, response);
     	
 //    	String accessToken = jwtUtil.generateAccessToken(username, username);
 //    	
@@ -125,12 +131,11 @@ public class UserService {
     
     public UserDTO getUserDTOByEmail(String email) {
     	User userEntity = getUserByEmail(email);
-    	CartProjection cartProjection = getUserCart(userEntity.getId());
-    	return new UserDTO(userEntity.getId(), cartProjection.getId(), userEntity.getFirstName(), userEntity.getLastName());
+    	return new UserDTO(userEntity.getId(), userEntity.getFirstName(), userEntity.getLastName());
     }
     
-    public CartProjection getUserCart(UUID userId) {
-    	return this.cartRepository.getActiveCartByUser(userId).orElseThrow();    	
+    public Optional<CartProjection> getUserCart(UUID userId) {
+    	return this.cartRepository.getActiveCartByUser(userId);    	
     }
     
     public User getUserByEmail(String email) {
@@ -138,8 +143,9 @@ public class UserService {
     }
     
     public String logoutUser(HttpServletResponse response) {
-    	clearAuthCookie("access_token", response);
-    	clearAuthCookie("refresh_token", response);
+    	CookieHandler.clearCookie("access_token", response);
+    	CookieHandler.clearCookie("refresh_token", response);
+    	CookieHandler.clearCookie("active_cart", response);
     	
     	return "Logout complete!";
     }
