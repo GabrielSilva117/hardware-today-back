@@ -61,6 +61,14 @@ public class CartService {
 	}
 	
 	@Transactional
+	public String deleteCart(UUID cartId, boolean isActiveCart, HttpServletResponse response) {
+		Cart cart = cartRepository.findById(cartId).orElseThrow();
+		cartRepository.delete(cart);
+		if (isActiveCart) clearActiveCartCookie(response);
+		return "Cart deleted successfully!";
+	}
+	
+	@Transactional
 	public String removeProductFromCart(UUID productId, UUID cartId, HttpServletResponse response) {
 		Cart cart = cartRepository.findById(cartId).orElseThrow();
 		Product product = productRepository.findById(productId).orElseThrow();

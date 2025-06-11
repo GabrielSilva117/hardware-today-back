@@ -71,4 +71,27 @@ public class CartController {
 			return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(null);
 		}
 	}
+	
+	@DeleteMapping("/")
+	public ResponseEntity<String> deleteActiveCart(@CookieValue(value="active_cart", required=false) UUID cartId,
+			HttpServletResponse response) {
+		try {
+			return ResponseEntity.ok().body(cartService.deleteCart(cartId, true, response));
+		} catch (Exception e) {
+			e.printStackTrace();
+			return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(null);
+		}
+	}
+	
+	@DeleteMapping("/{cartId}")
+	public ResponseEntity<String> deleteCartById(@CookieValue(value="active_cart", required=false) UUID activeCartId, 
+			@PathVariable UUID cartId, HttpServletResponse response) {
+		try {
+			return ResponseEntity.ok().body(cartService.deleteCart(cartId, activeCartId.equals(cartId), response));
+		} catch (Exception e) {
+			e.printStackTrace();
+			return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(e.getMessage());
+		}
+	}
+	
 }
