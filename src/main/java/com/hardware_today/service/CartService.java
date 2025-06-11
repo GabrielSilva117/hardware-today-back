@@ -3,6 +3,7 @@ package com.hardware_today.service;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Optional;
 import java.util.UUID;
 
 import org.springframework.stereotype.Service;
@@ -12,6 +13,7 @@ import com.hardware_today.dto.CartDTO;
 import com.hardware_today.dto.UserDTO;
 import com.hardware_today.entity.Cart;
 import com.hardware_today.entity.Product;
+import com.hardware_today.entity.User;
 import com.hardware_today.projections.CartProjection;
 import com.hardware_today.projections.ProductProjection;
 import com.hardware_today.repository.CartRepository;
@@ -19,16 +21,22 @@ import com.hardware_today.repository.ProductRepository;
 import com.hardware_today.utils.CookieHandler;
 import com.hardware_today.utils.JwtUtil;
 
+import jakarta.persistence.EntityManager;
+import jakarta.servlet.http.HttpServletResponse;
+
 @Service
 public class CartService {
 	private final CartRepository cartRepository;
 	private final ProductRepository productRepository;
+	private final EntityManager entityManager;
 	private final JwtUtil jwtUtil;
 	
-	public CartService(CartRepository cartRepository, JwtUtil jwtUtil, ProductRepository productRepository) {
+	public CartService(CartRepository cartRepository, JwtUtil jwtUtil, ProductRepository productRepository,
+			EntityManager entityManager) {
 		this.cartRepository = cartRepository;
 		this.jwtUtil = jwtUtil;
 		this.productRepository = productRepository;
+		this.entityManager = entityManager;
 	}
 	
 	public CartProjection getCartById(UUID id) {
@@ -39,9 +47,17 @@ public class CartService {
 		return this.cartRepository.getByUser(userId).orElseThrow();
 	}
 	
+	public Optional<CartProjection> getActiveCartByUser(UUID userId) {
+		return this.cartRepository.getActiveCartByUser(userId);
+	}
+	
 	public List<CartDTO> extractUserCartByToken(String token) {
 		UserDTO userDTO = this.jwtUtil.extractUserDTOClaim(token);
 		return this.getCartDTO(this.getUserCarts(userDTO.getId()));
+	}
+	
+	private void clearActiveCartCookie(HttpServletResponse response) {
+		CookieHandler.clearCookie("active_cart", response);
 	}
 	
 	@Transactional
