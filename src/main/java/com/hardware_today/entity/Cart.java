@@ -1,5 +1,6 @@
 package com.hardware_today.entity;
 
+import java.util.HashSet;
 import java.util.Set;
 import java.util.UUID;
 
@@ -25,8 +26,13 @@ import lombok.Setter;
 @Entity
 @Getter
 @Setter
-@NoArgsConstructor
-public class Cart {
+public class Cart {	
+	public Cart() {
+		this.products = new HashSet<>();
+		this.enabled = true;
+	}
+	
+	
 	@Id
 	@GeneratedValue(strategy = GenerationType.UUID)
 	private UUID id;
