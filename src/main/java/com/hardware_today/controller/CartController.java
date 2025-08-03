@@ -62,11 +62,11 @@ public class CartController {
 		}
 	}
 	
-	@DeleteMapping("/product/{productId}")
+	@DeleteMapping("/product/{productId}/{quantity}")
 	public ResponseEntity<String> removeProductFromCart(@CookieValue(value="active_cart", required=false) UUID cartId,
-			@PathVariable UUID productId, HttpServletResponse response) {
+			@PathVariable UUID productId, @PathVariable int quantity, HttpServletResponse response) {
 		try {
-			return ResponseEntity.ok().body(cartService.removeProductFromCart(productId, cartId, response));
+			return ResponseEntity.ok().body(cartService.removeProductFromCart(productId, cartId, quantity, response));
 		} catch (Exception e) {
 			e.printStackTrace();
 			return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(null);

@@ -6,6 +6,10 @@ import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
 
+import com.hardware_today.entity.CartItem;
+import com.hardware_today.projections.CartItemProjection;
+import com.hardware_today.repository.CartItemRepository;
+import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -25,19 +29,13 @@ import jakarta.persistence.EntityManager;
 import jakarta.servlet.http.HttpServletResponse;
 
 @Service
+@RequiredArgsConstructor
 public class CartService {
 	private final CartRepository cartRepository;
+	private final CartItemRepository cartItemRepository;
 	private final ProductRepository productRepository;
 	private final EntityManager entityManager;
 	private final JwtUtil jwtUtil;
-	
-	public CartService(CartRepository cartRepository, JwtUtil jwtUtil, ProductRepository productRepository,
-			EntityManager entityManager) {
-		this.cartRepository = cartRepository;
-		this.jwtUtil = jwtUtil;
-		this.productRepository = productRepository;
-		this.entityManager = entityManager;
-	}
 	
 	public CartProjection getCartById(UUID id) {
 		return this.cartRepository.getCartById(id).orElseThrow();
@@ -69,13 +67,20 @@ public class CartService {
 	}
 	
 	@Transactional
-	public String removeProductFromCart(UUID productId, UUID cartId, HttpServletResponse response) {
+	public String removeProductFromCart(UUID productId, UUID cartId, Integer quantity, HttpServletResponse response) {
 		Cart cart = cartRepository.findById(cartId).orElseThrow();
 		Product product = productRepository.findById(productId).orElseThrow();
+		CartItem item = cartItemRepository.findByCartAndProduct(cart, product).orElseThrow();
+
+		if (quantity != null) item.setQuantity(item.getQuantity() - quantity);
+
+		if (item.getQuantity() == 0) cart.getItems().remove(item);
+		else {
+			cartItemRepository.save(item);
+			cart.getItems().add(item);
+		}
 		
-		cart.getProducts().remove(product);
-		
-		if (cart.getProducts().size() == 0) {
+		if (cart.getItems().isEmpty()) {
 			cartRepository.delete(cart);
 			clearActiveCartCookie(response);
 			return null;
@@ -84,6 +89,25 @@ public class CartService {
 		cartRepository.save(cart);
 		
 		return "Product removed successfully";
+	}
+
+	@Transactional
+	public void addCartItem(Cart cart, Product product) {
+		try {
+			CartItem newItem = cartItemRepository
+					.findByCartAndProduct(cart, product)
+					.map(entity -> {
+						entity.setQuantity(entity.getQuantity() + 1);
+						return cartItemRepository.save(entity);
+					})
+					.orElseGet(() -> cartItemRepository.save(new CartItem(cart, product)));
+
+			cart.getItems().add(newItem);
+			cartRepository.save(cart);
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
+
 	}
 	
 	@Transactional
@@ -97,10 +121,9 @@ public class CartService {
 		
 		if (cart.getUser() == null) cart.setUser(entityManager.getReference(User.class, userDTO.getId()));
 		
-		
-		cart.getProducts().add(product);
 		cartRepository.save(cart);
-		
+		this.addCartItem(cart, product);
+
 		if (cartId == null || !cartId.equals(cart.getId())) CookieHandler.addCookie(cart.getId().toString(), "active_cart", 604800, response);
 		
 		return "Product added successfully";
@@ -112,8 +135,8 @@ public class CartService {
 		
 		if (!carts.isEmpty()) {
 			 for (CartProjection cart : carts) {
-				 CartDTO cartDTO = new CartDTO(cart.getId(), cart.getEnabled(), cart.getProducts(), 0.0);
-				 cartDTO.setTotalPrice(cart.getProducts().stream().mapToDouble(ProductProjection::getPrice).sum());				 
+				 CartDTO cartDTO = new CartDTO(cart.getId(), cart.getEnabled(), cart.getItems(), 0.0);
+				 cartDTO.setTotalPrice(cart.getItems().stream().mapToDouble(item -> item.getProduct().getPrice()).sum());
 				 cartDTOList.add(cartDTO);
 			 }
 		}

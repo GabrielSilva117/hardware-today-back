@@ -6,5 +6,5 @@ import java.util.UUID;
 public interface CartProjection {
 	UUID getId();
 	boolean getEnabled();
-	List<ProductProjection> getProducts();
+	List<CartItemProjection> getItems();
 }
