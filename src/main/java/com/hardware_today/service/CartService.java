@@ -58,6 +58,10 @@ public class CartService {
 		CookieHandler.clearCookie("active_cart", response);
 	}
 
+    private void addCartToCookie(UUID cart, HttpServletResponse response) {
+        CookieHandler.addCookie(cart.toString(), "active_cart", 604800, response);
+    }
+
 	private List<CartDTO> getCartDTO(List<CartProjection> carts) {
 		List<CartDTO> cartDTOList = new ArrayList<CartDTO>();
 
@@ -140,8 +144,43 @@ public class CartService {
         cartRepository.save(cart);
         this.addCartItem(cart, product);
 
-        if (cartId == null || !cartId.equals(cart.getId())) CookieHandler.addCookie(cart.getId().toString(), "active_cart", 604800, response);
+        if (cartId == null || !cartId.equals(cart.getId())) addCartToCookie(cart.getId(), response);
 
         return "Product added successfully";
+    }
+
+    public String handleCartConflict(UUID activeCart, UUID cartId, Boolean shouldMerge, HttpServletResponse response) {
+        if (shouldMerge) {
+            this.mergeCarts(activeCart, cartId);
+            return "Cart merged successfully!";
+        }
+
+        this.swapActiveCart(activeCart, cartId, response);
+        return "Cart swapped successfully";
+    }
+
+    @Transactional
+    public void mergeCarts(UUID activeCart, UUID cartId) {
+        cartItemRepository.changeCartsById(cartId, activeCart);
+        cartRepository.deleteById(cartId);
+    }
+
+    @Transactional
+    public void swapActiveCart(UUID activeCart, UUID cartId, HttpServletResponse response) {
+        this.toggleCartState(activeCart);
+        this.toggleCartState(cartId);
+        addCartToCookie(cartId, response);
+    }
+
+    @Transactional
+    public Cart toggleCartState(Cart cart) {
+        cart.setEnabled(!cart.isEnabled());
+        return this.cartRepository.save(cart);
+    }
+
+    @Transactional
+    public void toggleCartState(UUID cartId) {
+        Cart cart = this.cartRepository.findById(cartId).orElseThrow();
+        this.toggleCartState(cart);
     }
 }

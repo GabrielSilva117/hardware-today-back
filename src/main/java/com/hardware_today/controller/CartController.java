@@ -61,6 +61,16 @@ public class CartController {
 			return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(e.getMessage());
 		}
 	}
+    @PostMapping("/state-action")
+    public ResponseEntity<String> runStateAction(@CookieValue(value = "active_cart", required = false) UUID activeCardId,
+                                                 @RequestBody CartStateActionDTO body, HttpServletResponse response) {
+        try {
+            return ResponseEntity.ok().body(cartService.handleCartConflict(activeCardId, body.getCartToChange(), body.getShouldMerge(), response));
+        } catch (Exception e) {
+            e.printStackTrace();
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(null);
+        }
+    }
 	
 	@DeleteMapping("/product/{productId}/{quantity}")
 	public ResponseEntity<String> removeProductFromCart(@CookieValue(value="active_cart", required=false) UUID cartId,
