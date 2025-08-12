@@ -172,6 +172,15 @@ public class CartService {
         addCartToCookie(cartId, response);
     }
 
+    public Boolean changeCartState(String token, UUID activeCart, UUID cartId) {
+        Cart cart = this.cartRepository.findById(cartId).orElseThrow();
+
+        if (!activeCart.toString().isBlank() && !cartId.equals(activeCart) && !cart.isEnabled()) return false;
+
+        this.toggleCartState(cart);
+        return true;
+    }
+
     @Transactional
     public Cart toggleCartState(Cart cart) {
         cart.setEnabled(!cart.isEnabled());
@@ -182,5 +191,10 @@ public class CartService {
     public void toggleCartState(UUID cartId) {
         Cart cart = this.cartRepository.findById(cartId).orElseThrow();
         this.toggleCartState(cart);
+    }
+
+    public Boolean hasActiveCart(String token) {
+        UserDTO userDTO = this.jwtUtil.extractUserDTOClaim(token);
+        return this.cartRepository.countEnabledCartsByUser(userDTO.getId()) > 0;
     }
 }
