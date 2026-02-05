@@ -6,6 +6,7 @@ import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
 
+import com.hardware_today.dto.EmailDispatchDTO;
 import com.hardware_today.entity.CartItem;
 import com.hardware_today.projections.CartItemProjection;
 import com.hardware_today.repository.CartItemRepository;
@@ -36,7 +37,16 @@ public class CartService {
 	private final ProductRepository productRepository;
 	private final EntityManager entityManager;
 	private final JwtUtil jwtUtil;
-	
+    private final NotificationPublisher notificationPublisher;
+
+    public void publishMessage () {
+        this.notificationPublisher.publishNotification(new EmailDispatchDTO(
+                "Your purchase has been completed",
+                "Thank you for your purchase! You can follow the delivery step using the link from bellow. Best regards from our team, Hardware Today Corp.",
+                "gabriel.f.silva117@gmail.com"
+        ));
+    }
+
 	public CartProjection getCartById(UUID id) {
 		return this.cartRepository.getCartById(id).orElseThrow();
 	}

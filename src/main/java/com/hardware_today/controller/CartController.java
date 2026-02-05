@@ -111,4 +111,9 @@ public class CartController {
 			return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(e.getMessage());
 		}
 	}
+
+    @GetMapping("/test")
+    public void testPublisher (@CookieValue(value="active_cart", required=false) UUID activeCartId) {
+        this.cartService.publishMessage();
+    }
 }
