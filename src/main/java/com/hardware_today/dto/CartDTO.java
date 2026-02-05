@@ -7,9 +7,11 @@ import com.hardware_today.projections.CartItemProjection;
 
 import lombok.AllArgsConstructor;
 import lombok.Getter;
+import lombok.NoArgsConstructor;
 import lombok.Setter;
 
 @AllArgsConstructor
+@NoArgsConstructor
 @Getter
 @Setter
 public class CartDTO {
@@ -17,4 +19,5 @@ public class CartDTO {
 	private boolean enabled;
 	private List<CartItemProjection> items;
 	private double totalPrice;
+    private String name;
 }

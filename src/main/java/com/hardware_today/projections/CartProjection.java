@@ -7,4 +7,5 @@ public interface CartProjection {
 	UUID getId();
 	boolean getEnabled();
 	List<CartItemProjection> getItems();
+    String getName();
 }

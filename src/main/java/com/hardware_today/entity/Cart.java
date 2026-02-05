@@ -35,4 +35,6 @@ public class Cart {
 	
 	@ManyToOne(optional=false)
 	private User user;
+
+    private String name;
 }
