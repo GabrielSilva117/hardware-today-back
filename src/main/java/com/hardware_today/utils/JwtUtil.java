@@ -17,6 +17,7 @@ import com.hardware_today.dto.UserDTO;
 import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.SignatureAlgorithm;
+import jakarta.servlet.http.HttpServletResponse;
 
 @Component
 public class JwtUtil {
@@ -35,8 +36,8 @@ public class JwtUtil {
 		return this.createToken(subject, email, access_exp_time, userDTO);
 	}
 	
-	public String generateRefreshToken(String subject, String email) {
-		return this.createToken(subject, email, refresh_exp_time);
+	public String generateRefreshToken(String subject, String email, UserDTO userDTO) {
+		return this.createToken(subject, email, refresh_exp_time, userDTO);
 	}
 	
     public String extractUsername(String token) {
@@ -92,5 +93,11 @@ public class JwtUtil {
     
     public Boolean isTokenExpired(String token) {
     	return extractExpiration(token).before(new Date());
+    }
+
+    public Boolean refreshToken(String refreshToken, String userName, HttpServletResponse response) {
+    	if (validateToken(refreshToken, userName)) return false;
+        CookieHandler.addCookie(this.generateAccessToken(userName, userName, this.extractUserDTOClaim(refreshToken)), "access_token", 900, response);
+    	return true;
     }
 }

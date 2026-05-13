@@ -96,7 +96,7 @@ public class UserService {
 //    	addCookie();/;s
 
     	CookieHandler.addCookie(jwtUtil.generateAccessToken(userDetails.getUsername(), userDetails.getUsername(), userDTO), "access_token", 900, res);
-    	CookieHandler.addCookie(jwtUtil.generateRefreshToken(userDetails.getUsername(), userDetails.getUsername()), "refresh_token", 604800, res);
+    	CookieHandler.addCookie(jwtUtil.generateRefreshToken(userDetails.getUsername(), userDetails.getUsername(), userDTO), "refresh_token", 604800, res);
     	addCartCookie(userDTO.getId(), res);
     	
 //    	response.setAccessToken(jwtUtil.generateAccessToken(userDetails.getUsername(), userDetails.getUsername()));
