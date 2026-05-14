@@ -13,7 +13,7 @@ import com.hardware_today.projections.CartProjection;
 
 public interface CartRepository extends JpaRepository<Cart, UUID> {
 	
-	@Query("SELECT c FROM Cart c JOIN c.items i WHERE c.user.id = :user ORDER BY i.product.category.name")
+	@Query("SELECT c FROM Cart c JOIN c.items i WHERE c.user.id = :user ORDER BY i.product.category.name, c.enabled")
 	Optional<List<CartProjection>> getByUser(@Param("user") UUID user);
 	
 	@Query("SELECT c FROM Cart c JOIN c.items i WHERE c.id = :id ORDER BY i.product.category.name")

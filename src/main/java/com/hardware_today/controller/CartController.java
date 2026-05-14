@@ -112,8 +112,8 @@ public class CartController {
 		}
 	}
 
-    @GetMapping("/test")
-    public void testPublisher (@CookieValue(value="active_cart", required=false) UUID activeCartId) {
-        this.cartService.publishMessage();
+    @GetMapping("/")
+    public ResponseEntity<UUID> getActiveCartId(@CookieValue(value="active_cart", required = false) UUID cartId) {
+        return ResponseEntity.ok().body(cartId);
     }
 }

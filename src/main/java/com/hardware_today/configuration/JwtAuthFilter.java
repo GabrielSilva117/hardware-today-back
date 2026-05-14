@@ -2,6 +2,9 @@ package com.hardware_today.configuration;
 
 import java.io.IOException;
 import java.util.Arrays;
+import java.util.List;
+import java.util.Map;
+import java.util.stream.Collectors;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
@@ -41,26 +44,31 @@ public class JwtAuthFilter extends OncePerRequestFilter {
 		
 //		final String token = authHeader.substring(7);
 		
-		String token = Arrays.stream(req.getCookies() != null ? req.getCookies() : new Cookie[0])
-				.filter(cookie -> "access_token".equals(cookie.getName()))
-				.map(Cookie::getValue)
-				.findFirst()
-				.orElse(null);
+		Map<String, String> tokens = Arrays.stream(req.getCookies() != null ? req.getCookies() : new Cookie[0])
+			.filter(cookie -> "access_token".equals(cookie.getName()) || "refresh_token".equals(cookie.getName()))
+			.collect(Collectors.toMap(Cookie::getName, Cookie::getValue));
+
+		String refreshToken = tokens.get("refresh_token");
+		String accessToken  = tokens.get("access_token");
 		
-		if(token != null && !token.isBlank()) {
-			final String username = jwtUtil.extractUsername(token);
+		if(accessToken != null && !accessToken.isBlank()) {
+			final String username = jwtUtil.extractUsername(accessToken);
 			
 			if (username != null && SecurityContextHolder.getContext().getAuthentication() == null) {
 				UserDetails userDetails = userDetailsService.loadUserByUsername(username);
 				
-				if (jwtUtil.validateToken(token, userDetails.getUsername())) {
-					SecurityContextHolder.getContext().setAuthentication(
-							new UsernamePasswordAuthenticationToken(userDetails, null, userDetails.getAuthorities())
-							);
-				}
+				if (jwtUtil.validateToken(accessToken, userDetails.getUsername())) {
+					this.runSecurityContext(userDetails);
+				} else if (jwtUtil.refreshToken(refreshToken, username, res)) this.runSecurityContext(userDetails);
 			}
 		}
 
 		chain.doFilter(req, res);
+	}
+
+	private void runSecurityContext(UserDetails userDetails) {
+		SecurityContextHolder.getContext().setAuthentication(
+			new UsernamePasswordAuthenticationToken(userDetails, null, userDetails.getAuthorities())
+			);
 	}
 }
