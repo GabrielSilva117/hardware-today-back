@@ -23,8 +23,8 @@ import jakarta.servlet.http.HttpServletResponse;
 public class JwtUtil {
 	private final JwtConfig jwtConfig; 
 	private final ObjectMapper objMapper;
-	private static final long access_exp_time = 1000 * 60 * 15;
-	private static final long refresh_exp_time = 1000 * 60 * 60 * 24 * 7;
+	private static final long access_exp_time = 1000 * 60 * 15; // 10 min
+	private static final long refresh_exp_time = 1000 * 60 * 60 * 24 * 7; // 7 days
 	
 	@Autowired
 	public JwtUtil(JwtConfig config, ObjectMapper objMapper) {
