@@ -96,8 +96,9 @@ public class JwtUtil {
     }
 
     public Boolean refreshToken(String refreshToken, String userName, HttpServletResponse response) {
-    	if (validateToken(refreshToken, userName)) return false;
-        CookieHandler.addCookie(this.generateAccessToken(userName, userName, this.extractUserDTOClaim(refreshToken)), "access_token", 900, response);
+    	if (!this.validateToken(refreshToken, userName)) return false;
+        UserDTO userDTO = this.extractUserDTOClaim(refreshToken);
+        CookieHandler.addCookie(this.generateAccessToken(userName, userName, userDTO), "access_token", 900, response);
     	return true;
     }
 }

@@ -36,6 +36,7 @@ public class CartService {
 	private final CartItemRepository cartItemRepository;
 	private final ProductRepository productRepository;
 	private final EntityManager entityManager;
+    private final CartCookieService cartCookieService;
 	private final JwtUtil jwtUtil;
     private final NotificationPublisher notificationPublisher;
 
@@ -177,17 +178,22 @@ public class CartService {
 
     @Transactional
     public void swapActiveCart(UUID activeCart, UUID cartId, HttpServletResponse response) {
-        this.toggleCartState(activeCart);
+        this.toggleCartState(activeCart, "Swapped Cart");
         this.toggleCartState(cartId);
         addCartToCookie(cartId, response);
     }
 
-    public Boolean changeCartState(String token, UUID activeCart, UUID cartId) {
+    public Boolean changeCartState(HttpServletResponse response, UUID activeCart, UUID cartId, String cartName) {
         Cart cart = this.cartRepository.findById(cartId).orElseThrow();
+        
+        // If the user has and active cart and is different from the target, which is is not enabled returns false (opens confirmation pop up)
+        if (activeCart != null && !activeCart.toString().isBlank() && !cartId.equals(activeCart) && !cart.isEnabled()) return false;
 
-        if (!activeCart.toString().isBlank() && !cartId.equals(activeCart) && !cart.isEnabled()) return false;
+        this.toggleCartState(cart, cartName);
 
-        this.toggleCartState(cart);
+        cartCookieService.removeCookie(response);
+        if (cart.isEnabled()) cartCookieService.addCartCookieById(cartId, response);
+
         return true;
     }
 
@@ -201,6 +207,20 @@ public class CartService {
     public void toggleCartState(UUID cartId) {
         Cart cart = this.cartRepository.findById(cartId).orElseThrow();
         this.toggleCartState(cart);
+    }
+
+    @Transactional
+    public void toggleCartState(UUID cartId, String cartName) {
+        Cart cart = this.cartRepository.findById(cartId).orElseThrow();
+        this.toggleCartState(cart,cartName);
+    }
+
+
+    @Transactional
+    public Cart toggleCartState(Cart cart, String cartName) {
+        cart.setEnabled(!cart.isEnabled());
+        cart.setName(cartName);
+        return this.cartRepository.save(cart);
     }
 
     public Boolean hasActiveCart(String token) {
