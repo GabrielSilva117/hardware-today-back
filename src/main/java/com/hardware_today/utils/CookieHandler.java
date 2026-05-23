@@ -12,7 +12,7 @@ public class CookieHandler {
     	authCookie.setHttpOnly(true);
     	authCookie.setSecure(false); // --TODO add an env variable to change it to true in prd
     	authCookie.setPath("/");
-    	authCookie.setMaxAge(cookieMaxAge);
+    	authCookie.setMaxAge(cookieMaxAge); // --TODO add an env variable to change it on diff enviroments
     	response.addCookie(authCookie);    	
     }
     

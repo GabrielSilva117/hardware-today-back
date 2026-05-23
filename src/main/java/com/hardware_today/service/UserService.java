@@ -77,7 +77,7 @@ public class UserService {
 	 * authCookie.setMaxAge(cookieMaxAge); response.addCookie(authCookie); }
 	 */
     
-    private void addCartCookie(UUID userId, HttpServletResponse response) {
+    public void addCartCookie(UUID userId, HttpServletResponse response) {
     	getUserCart(userId).ifPresent(cartProjection -> CookieHandler.addCookie(cartProjection.getId().toString(), "active_cart", 604800, response));
     }
     
@@ -90,43 +90,12 @@ public class UserService {
     	UserDetails userDetails = userDetailsService.loadUserByUsername(user.get("email"));
     	
     	UserDTO userDTO = getUserDTOByEmail(user.get("email"));
-    	
-//    	AuthResponse response = new AuthResponse();
-    	
-//    	addCookie();/;s
 
     	CookieHandler.addCookie(jwtUtil.generateAccessToken(userDetails.getUsername(), userDetails.getUsername(), userDTO), "access_token", 900, res);
     	CookieHandler.addCookie(jwtUtil.generateRefreshToken(userDetails.getUsername(), userDetails.getUsername(), userDTO), "refresh_token", 604800, res);
     	addCartCookie(userDTO.getId(), res);
     	
-//    	response.setAccessToken(jwtUtil.generateAccessToken(userDetails.getUsername(), userDetails.getUsername()));
-//    	response.setRefreshToken(jwtUtil.generateRefreshToken(userDetails.getUsername(), userDetails.getUsername()));
-    	
     	return "You're now successfully logged in";
-    }
-
-    public String refreshAccessToken(String refreshToken, HttpServletResponse response) throws Exception {
-    	AuthResponse authRes = new AuthResponse();
-    	
-//    	if (authHeader == null || !authHeader.startsWith("Bearer ")) {
-//    		throw new BadRequestException("The provided token is invalid!");
-//    	}
-//    	
-//    	String token = authHeader.substring(7);
-    	String username = this.jwtUtil.extractUsername(refreshToken);
-    	
-    	UserDTO userDTO = getUserDTOByEmail(username);
-    		
-    	if (refreshToken == null || username == null || !this.jwtUtil.validateToken(refreshToken, username)) 
-    		throw new UnauthorizedException("The refresh token expired! Login to generate a new one");
-    	
-    	CookieHandler.addCookie(jwtUtil.generateAccessToken(username, username, userDTO), "access_token", 900, response);
-    	
-//    	String accessToken = jwtUtil.generateAccessToken(username, username);
-//    	
-//    	authRes.setAccessToken(accessToken);
-    	
-    	return "The access token received a refresh";
     }
     
     public UserDTO getUserDTOByEmail(String email) {

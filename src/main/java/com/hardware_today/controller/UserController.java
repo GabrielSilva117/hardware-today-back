@@ -44,16 +44,6 @@ public class UserController {
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Login failed! Try again...");
         }
     }
-    
-    @PostMapping("/refresh-token")
-    public ResponseEntity<String> refreshToken(@CookieValue(value="refresh-token", required=false) String refreshToken, HttpServletResponse response) {
-    	try {
-            return ResponseEntity.ok(userService.refreshAccessToken(refreshToken, response));
-    	} catch (Exception e) {
-    		e.printStackTrace();
-    		return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(e.getMessage());
-    	}
-    }
 
     @PostMapping("/logout")
     public ResponseEntity<String> logout(HttpServletResponse response) {
