@@ -1,26 +1,26 @@
 package com.hardware_today.service;
 
 
+import java.math.BigDecimal;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
 
-import com.hardware_today.dto.EmailDispatchDTO;
+import com.hardware_today.dto.*;
 import com.hardware_today.entity.CartItem;
-import com.hardware_today.projections.CartItemProjection;
+import com.hardware_today.enums.PaymentType;
+import com.hardware_today.publishers.NotificationPublisher;
+import com.hardware_today.publishers.PaymentPublisher;
 import com.hardware_today.repository.CartItemRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import com.hardware_today.dto.CartDTO;
-import com.hardware_today.dto.UserDTO;
 import com.hardware_today.entity.Cart;
 import com.hardware_today.entity.Product;
 import com.hardware_today.entity.User;
 import com.hardware_today.projections.CartProjection;
-import com.hardware_today.projections.ProductProjection;
 import com.hardware_today.repository.CartRepository;
 import com.hardware_today.repository.ProductRepository;
 import com.hardware_today.utils.CookieHandler;
@@ -60,9 +60,9 @@ public class CartService {
 		return this.cartRepository.getActiveCartByUser(userId);
 	}
 
-	public List<CartDTO> extractUserCartByToken(String token) {
+	public UserCartsResDTO extractUserCartByToken(String token) {
 		UserDTO userDTO = this.jwtUtil.extractUserDTOClaim(token);
-		return this.getCartDTO(this.getUserCarts(userDTO.getId()));
+		return this.getUserCartsDTO(this.getUserCarts(userDTO.getId()));
 	}
 
 	private void clearActiveCartCookie(HttpServletResponse response) {
@@ -73,20 +73,26 @@ public class CartService {
         CookieHandler.addCookie(cart.toString(), "active_cart", 604800, response);
     }
 
-	private List<CartDTO> getCartDTO(List<CartProjection> carts) {
-		List<CartDTO> cartDTOList = new ArrayList<CartDTO>();
-
+	private UserCartsResDTO getUserCartsDTO(List<CartProjection> carts) {
+		List<CartDTO> cartDTOList = new ArrayList<>();
+        CartDTO activeCart = new CartDTO();
 
 		if (!carts.isEmpty()) {
 			 for (CartProjection cart : carts) {
-				 CartDTO cartDTO = new CartDTO(cart.getId(), cart.getEnabled(), cart.getItems(), 0.0);
-				 cartDTO.setTotalPrice(cart.getItems().stream().mapToDouble(item -> item.getProduct().getPrice()).sum());
+				 CartDTO cartDTO = new CartDTO(cart.getId(), cart.getEnabled(), cart.getItems(), 0.0, cart.getName());
+                 cartDTO.setTotalPrice(cart.getItems().stream().mapToDouble(item -> item.getProduct().getPrice()).sum());
+
+                 if (cartDTO.isEnabled()) {
+                     activeCart = cartDTO;
+                     continue;
+                 }
+
 				 cartDTOList.add(cartDTO);
 			 }
 		}
 
 
-		return cartDTOList;
+		return new UserCartsResDTO(activeCart, cartDTOList);
 	}
 
     @Transactional
