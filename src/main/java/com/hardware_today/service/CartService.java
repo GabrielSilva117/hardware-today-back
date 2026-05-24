@@ -103,7 +103,12 @@ public class CartService {
         Product product = productRepository.findById(productId).orElseThrow();
         CartItem item = cartItemRepository.findByCartAndProduct(cart, product).orElseThrow();
 
-        if (quantity != null) item.setQuantity(item.getQuantity() - quantity);
+        if (item.getQuantity() == null) {
+            item.setQuantity(1);
+        }
+        if (quantity != null) {
+            item.setQuantity(item.getQuantity() - quantity);
+        }
 
         if (item.getQuantity() == 0) cart.getItems().remove(item);
         else {
@@ -128,7 +133,8 @@ public class CartService {
             CartItem newItem = cartItemRepository
                     .findByCartAndProduct(cart, product)
                     .map(entity -> {
-                        entity.setQuantity(entity.getQuantity() + 1);
+                        int q = entity.getQuantity() != null ? entity.getQuantity() : 1;
+                        entity.setQuantity(q + 1);
                         return cartItemRepository.save(entity);
                     })
                     .orElseGet(() -> cartItemRepository.save(new CartItem(cart, product)));

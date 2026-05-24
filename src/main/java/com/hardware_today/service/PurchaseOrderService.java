@@ -41,7 +41,7 @@ public class PurchaseOrderService {
 
         for (CartItem cartItem : cart.getItems()) {
             double unitPrice = cartItem.getProduct().getPrice();
-            int qty = cartItem.getQuantity() != null ? cartItem.getQuantity() : 0;
+            int qty = cartItem.getQuantity() != null ? cartItem.getQuantity() : 1;
             double line = unitPrice * qty;
             total += line;
 

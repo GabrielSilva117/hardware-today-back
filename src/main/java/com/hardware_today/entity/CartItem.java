@@ -23,11 +23,13 @@ public class CartItem {
     @ManyToOne(optional = false)
     private Product product;
 
+    @Column(nullable = false)
     @ColumnDefault("1")
-    private Integer quantity;
+    private Integer quantity = 1;
 
     public CartItem(Cart cart, Product product) {
         this.cart = cart;
         this.product = product;
+        this.quantity = 1;
     }
 }
