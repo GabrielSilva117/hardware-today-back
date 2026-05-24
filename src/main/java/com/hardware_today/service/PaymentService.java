@@ -26,10 +26,12 @@ public class PaymentService {
 
     public void publishPayment(UUID activeCart, CardPayment cardPayment, HttpServletResponse response) {
         cardPayment.setCartId(activeCart);
-        PaymentResponse paymentResponse = this.paymentPublisher.publishPayment(cardPayment);
+        PaymentResponse paymentResponse = this.paymentPublisher.callPaymentMicroservice(cardPayment);
         if (paymentResponse != null && PaymentStatus.SUCCESS.equals(paymentResponse.getStatus())) {
-            this.purchaseOrderService.createFromCart(activeCart);
+            var order = this.purchaseOrderService.createFromCart(activeCart);
+            paymentResponse.setPurchaseOrderId(order.getId());
             this.cartService.deleteCart(activeCart, true, response);
         }
+        this.paymentPublisher.broadcastPaymentResult(activeCart, paymentResponse);
     }
 }
