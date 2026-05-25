@@ -5,6 +5,9 @@ import java.util.UUID;
 
 import com.hardware_today.dto.CartStateActionDTO;
 import com.hardware_today.dto.CartStateToggle;
+import com.hardware_today.dto.UserCartsResDTO;
+import com.hardware_today.enums.PaymentType;
+import com.hardware_today.model.ProductFilterModel;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.HttpStatusCode;
 import org.springframework.http.ResponseEntity;
@@ -38,7 +41,7 @@ public class CartController {
 	}
 	
 	@GetMapping("/user")
-	public ResponseEntity<List<CartDTO>> getCartByUser(@CookieValue(value="access_token", required=false) String accessToken) {
+	public ResponseEntity<UserCartsResDTO> getCartByUser(@CookieValue(value="access_token", required=false) String accessToken) {
 		try {
 			return ResponseEntity.ok().body(cartService.extractUserCartByToken(accessToken));
 		} catch (Exception e) {

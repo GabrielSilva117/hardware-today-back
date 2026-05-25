@@ -11,6 +11,8 @@ import org.springframework.amqp.rabbit.core.RabbitTemplate;
 import org.springframework.messaging.simp.SimpMessagingTemplate;
 import org.springframework.stereotype.Service;
 
+import java.util.UUID;
+
 @Service
 @RequiredArgsConstructor
 public class PaymentPublisher {
@@ -28,26 +30,26 @@ public class PaymentPublisher {
         );
     }
 
-    public PaymentResponse publishPayment(PaymentDTO paymentDTO) {
+    /**
+     * Calls the payment microservice only (no WebSocket). Caller broadcasts after PO / cart side-effects.
+     */
+    public PaymentResponse callPaymentMicroservice(PaymentDTO paymentDTO) {
         try {
             PaymentResponse res = paymentFeign.payCart(paymentDTO);
             if (res == null) {
-                // Guarantee a non-null websocket payload for frontend listeners.
-                res = new PaymentResponse(PaymentStatus.FAILURE);
+                return new PaymentResponse(PaymentStatus.FAILURE, null);
             }
-            messagingTemplate.convertAndSend(
-                    "/topic/payment/" + paymentDTO.getCartId(),
-                    res
-            );
             return res;
         } catch (Exception e) {
             e.printStackTrace();
-            PaymentResponse failure = new PaymentResponse(PaymentStatus.FAILURE);
-            messagingTemplate.convertAndSend(
-                    "/topic/payment/" + paymentDTO.getCartId(),
-                    failure
-            );
-            return failure;
+            return new PaymentResponse(PaymentStatus.FAILURE, null);
         }
+    }
+
+    public void broadcastPaymentResult(UUID cartId, PaymentResponse response) {
+        messagingTemplate.convertAndSend(
+                "/topic/payment/" + cartId,
+                response
+        );
     }
 }
