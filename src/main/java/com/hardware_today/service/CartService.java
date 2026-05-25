@@ -169,7 +169,7 @@ public class CartService {
 
         if (cartId == null || !cartId.equals(cart.getId())) addCartToCookie(cart.getId(), response);
 
-        return "Product added successfully";
+        return product.getName();
     }
 
     public String handleCartConflict(UUID activeCart, UUID cartId, Boolean shouldMerge, HttpServletResponse response) {
