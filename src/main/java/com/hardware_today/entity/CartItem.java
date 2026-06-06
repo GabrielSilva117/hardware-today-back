@@ -7,11 +7,20 @@ import lombok.NoArgsConstructor;
 import lombok.Setter;
 import org.hibernate.annotations.ColumnDefault;
 
-@Entity(name = "cart_item")
+@Entity
 @Getter
 @Setter
 @AllArgsConstructor
 @NoArgsConstructor
+@Table(
+    name = "cart_item",
+    uniqueConstraints = {
+        @UniqueConstraint(
+            name = "uq_cart_item",
+            columnNames = {"cart_id", "product_id"}
+        )
+    }
+)
 public class CartItem {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)

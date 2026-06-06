@@ -14,8 +14,25 @@ import java.util.UUID;
 public interface CartItemRepository extends JpaRepository<CartItem, Long> {
     Optional<CartItem> findByCartAndProduct(Cart cart, Product product);
 
+    // @Modifying
+    // @Transactional
+    // @Query(value = "UPDATE cart_item c SET cart_id = :newCart WHERE cart_id = :cartToMerge", nativeQuery = true)
+    // void changeCartsById(UUID cartToMerge, UUID newCart);
+
     @Modifying
     @Transactional
-    @Query(value = "UPDATE cart_item c SET cart_id = :newCart WHERE cart_id = :cartToMerge", nativeQuery = true)
+    @Query(value = """
+        INSERT INTO cart_item (cart_id, product_id, quantity)
+        SELECT :newCart, product_id, quantity
+        FROM cart_item
+        WHERE cart_id = :cartToMerge
+        ON CONFLICT (cart_id, product_id)
+        DO UPDATE SET quantity = cart_item.quantity + EXCLUDED.quantity
+        """, nativeQuery = true)
     void changeCartsById(UUID cartToMerge, UUID newCart);
+
+    @Modifying
+    @Transactional
+    @Query(value = "DELETE FROM cart_item WHERE cart_id = :cartToMerge", nativeQuery = true)
+    void deleteCartItems(UUID cartToMerge);
 }

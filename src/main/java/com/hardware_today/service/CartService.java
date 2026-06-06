@@ -201,6 +201,7 @@ public class CartService {
     @Transactional
     public void mergeCarts(UUID activeCart, UUID cartId) {
         cartItemRepository.changeCartsById(cartId, activeCart);
+        cartItemRepository.deleteCartItems(cartId);
         cartRepository.deleteById(cartId);
     }
 
