@@ -8,7 +8,6 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import jakarta.servlet.http.HttpServletResponse;
-import java.util.UUID;
 
 @RestController
 @RequiredArgsConstructor
@@ -17,15 +16,14 @@ public class PaymentController {
     private final PaymentService paymentService;
 
     @PostMapping("/pay/card")
-    public ResponseEntity<UUID> payCart (@CookieValue(value="active_cart", required=false) UUID activeCartId,
+    public ResponseEntity<String> payCart (@CookieValue(value="access_token", required=true) String token,
                                          @RequestBody(required = false) CardPayment paymentData,
                                          HttpServletResponse response) {
-//        this.cartService.publishMessage();
         try {
-            this.paymentService.publishPayment(activeCartId, paymentData, response);
-            return ResponseEntity.ok().body(activeCartId);
+            this.paymentService.publishPayment(token, paymentData, response);
+            return ResponseEntity.ok().body("Payment completed!");
         } catch(Exception e) {
-           return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(activeCartId);
+           return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(e.getMessage());
         }
 
     }

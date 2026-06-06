@@ -1,21 +1,14 @@
 package com.hardware_today.controller;
 
-import java.util.List;
 import java.util.UUID;
 
 import com.hardware_today.dto.CartStateActionDTO;
 import com.hardware_today.dto.CartStateToggle;
 import com.hardware_today.dto.UserCartsResDTO;
-import com.hardware_today.enums.PaymentType;
-import com.hardware_today.model.ProductFilterModel;
 import org.springframework.http.HttpStatus;
-import org.springframework.http.HttpStatusCode;
 import org.springframework.http.ResponseEntity;
-import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.*;
 
-import com.hardware_today.dto.CartDTO;
-import com.hardware_today.entity.Cart;
 import com.hardware_today.projections.CartProjection;
 import com.hardware_today.service.CartService;
 
@@ -52,9 +45,9 @@ public class CartController {
 	
 	@PostMapping("/add/{productId}")
 	public ResponseEntity<String> addProductToCart(@CookieValue(value="access_token", required=false) String accessToken, 
-			@CookieValue(value="active_cart", required=false) UUID cartId, @PathVariable UUID productId, HttpServletResponse response) {
+		@PathVariable UUID productId, HttpServletResponse response) {
 		try {
-			return ResponseEntity.ok().body(cartService.addProductToCart(accessToken, productId, cartId, response));
+			return ResponseEntity.ok().body(cartService.addProductToCart(accessToken, productId, response));
 		} catch (Exception e) {
 			e.printStackTrace();
 			return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(e.getMessage());
@@ -63,9 +56,9 @@ public class CartController {
 
     @PostMapping("/toggle-state/{cartId}")
     public ResponseEntity<Boolean> toggleState(HttpServletResponse response,
-           @CookieValue(value="active_cart", required=false) UUID activeCartId, @PathVariable UUID cartId, @RequestBody CartStateToggle body) {
+           @CookieValue(value="access_token", required=false) String token, @PathVariable UUID cartId, @RequestBody CartStateToggle body) {
         try {
-            return ResponseEntity.ok().body(cartService.changeCartState(response, activeCartId, cartId, body.getCartName()));
+            return ResponseEntity.ok().body(cartService.changeCartState(response, token, cartId, body.getCartName()));
         } catch (Exception e) {
             e.printStackTrace();
             return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(null);
@@ -73,10 +66,10 @@ public class CartController {
     }
 
     @PostMapping("/state-action")
-    public ResponseEntity<String> runStateAction(@CookieValue(value = "active_cart", required = false) UUID activeCardId,
+    public ResponseEntity<String> runStateAction(@CookieValue(value = "access_token", required = false) String token,
                                                  @RequestBody CartStateActionDTO body, HttpServletResponse response) {
         try {
-            return ResponseEntity.ok().body(cartService.handleCartConflict(activeCardId, body.getCartToChange(), body.getShouldMerge(), response));
+            return ResponseEntity.ok().body(cartService.handleCartConflict(token, body.getCartToChange(), body.getShouldMerge(), response));
         } catch (Exception e) {
             e.printStackTrace();
             return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(null);
@@ -84,10 +77,10 @@ public class CartController {
     }
 	
 	@DeleteMapping("/product/{productId}/{quantity}")
-	public ResponseEntity<String> removeProductFromCart(@CookieValue(value="active_cart", required=false) UUID cartId,
+	public ResponseEntity<String> removeProductFromCart(@CookieValue(value="access_token", required=false) String token,
 			@PathVariable UUID productId, @PathVariable int quantity, HttpServletResponse response) {
 		try {
-			return ResponseEntity.ok().body(cartService.removeProductFromCart(productId, cartId, quantity, response));
+			return ResponseEntity.ok().body(cartService.removeProductFromCart(productId, token, quantity, response));
 		} catch (Exception e) {
 			e.printStackTrace();
 			return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(null);
@@ -95,10 +88,10 @@ public class CartController {
 	}
 	
 	@DeleteMapping(value = {"", "/"})
-	public ResponseEntity<String> deleteActiveCart(@CookieValue(value="active_cart", required=false) UUID cartId,
+	public ResponseEntity<String> deleteActiveCart(@CookieValue(value="access_token", required=false) String token,
 			HttpServletResponse response) {
 		try {
-			return ResponseEntity.ok().body(cartService.deleteCart(cartId, true, response));
+			return ResponseEntity.ok().body(cartService.deleteCart(token, true, response));
 		} catch (Exception e) {
 			e.printStackTrace();
 			return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(null);
@@ -106,7 +99,7 @@ public class CartController {
 	}
 	
 	@DeleteMapping("/{cartId}")
-	public ResponseEntity<String> deleteCartById(@CookieValue(value="active_cart", required=false) UUID activeCartId, 
+	public ResponseEntity<String> deleteCartById(@CookieValue(value="access_token", required=false) UUID activeCartId, 
 			@PathVariable UUID cartId, HttpServletResponse response) {
 		try {
 			return ResponseEntity.ok().body(cartService.deleteCart(cartId, activeCartId.equals(cartId), response));
@@ -117,7 +110,7 @@ public class CartController {
 	}
 
     @GetMapping(value = {"", "/"})
-    public ResponseEntity<UUID> getActiveCartId(@CookieValue(value="active_cart", required = false) UUID cartId) {
+    public ResponseEntity<UUID> getActiveCartId(@CookieValue(value="access_token", required = false) UUID cartId) {
         return ResponseEntity.ok().body(cartId);
     }
 }

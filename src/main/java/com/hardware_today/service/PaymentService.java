@@ -2,13 +2,18 @@ package com.hardware_today.service;
 
 import com.hardware_today.dto.CardPayment;
 import com.hardware_today.dto.PaymentResponse;
+import com.hardware_today.entity.Cart;
 import com.hardware_today.enums.PaymentStatus;
 import com.hardware_today.enums.PaymentType;
+import com.hardware_today.projections.CartProjection;
 import com.hardware_today.publishers.PaymentPublisher;
+import com.hardware_today.utils.JwtUtil;
+
 import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
+import java.util.Optional;
 import java.util.UUID;
 
 @Service
@@ -18,13 +23,15 @@ public class PaymentService {
     private final CartService cartService;
     private final PurchaseOrderService purchaseOrderService;
 
-    public void publishPayment(PaymentType paymentType, UUID activeCart, CardPayment cardPayment) {
+    public void publishPayment(PaymentType paymentType, String token, CardPayment cardPayment) throws Exception {
         // new CardPayment(new BigDecimal("233.44"), "USD", PaymentType.CARD_CREDIT, activeCart, "1000")
+        UUID activeCart = this.cartService.getActiveCartId(token);
         cardPayment.setCartId(activeCart);
         this.paymentPublisher.publishPayment(paymentType, cardPayment);
     }
 
-    public void publishPayment(UUID activeCart, CardPayment cardPayment, HttpServletResponse response) {
+    public void publishPayment(String token, CardPayment cardPayment, HttpServletResponse response) throws Exception {
+        UUID activeCart = this.cartService.getActiveCartId(token);
         cardPayment.setCartId(activeCart);
         PaymentResponse paymentResponse = this.paymentPublisher.callPaymentMicroservice(cardPayment);
         if (paymentResponse != null && PaymentStatus.SUCCESS.equals(paymentResponse.getStatus())) {
