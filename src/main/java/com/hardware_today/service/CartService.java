@@ -36,7 +36,6 @@ public class CartService {
 	private final CartItemRepository cartItemRepository;
 	private final ProductRepository productRepository;
 	private final EntityManager entityManager;
-    private final CartCookieService cartCookieService;
 	private final JwtUtil jwtUtil;
     private final NotificationPublisher notificationPublisher;
 
@@ -80,7 +79,7 @@ public class CartService {
 		if (!carts.isEmpty()) {
 			 for (CartProjection cart : carts) {
 				 CartDTO cartDTO = new CartDTO(cart.getId(), cart.getEnabled(), cart.getItems(), 0.0, cart.getName());
-                 cartDTO.setTotalPrice(cart.getItems().stream().mapToDouble(item -> item.getProduct().getPrice()).sum());
+                 cartDTO.setTotalPrice(cart.getItems().stream().mapToDouble(item -> item.getProduct().getPrice() * item.getQuantity()).sum());
 
                  if (cartDTO.isEnabled()) {
                      activeCart = cartDTO;
@@ -96,15 +95,28 @@ public class CartService {
 	}
 
     @Transactional
-    public String deleteCart(UUID cartId, boolean isActiveCart, HttpServletResponse response) {
+    public String deleteCart(String token, boolean isActiveCart, HttpServletResponse response) throws Exception {
+        UUID cartId = this.getActiveCartId(token);
+        return this.deleteCart(cartId, isActiveCart, response);
+    }
+
+    @Transactional
+    public String deleteCart(UUID cartId, boolean isActiveCart, HttpServletResponse response) throws Exception {
         Cart cart = cartRepository.findById(cartId).orElseThrow();
         cartRepository.delete(cart);
         if (isActiveCart) clearActiveCartCookie(response);
         return "Cart deleted successfully!";
     }
 
+
     @Transactional
-    public String removeProductFromCart(UUID productId, UUID cartId, Integer quantity, HttpServletResponse response) {
+    public String removeProductFromCart(UUID productId, String token, Integer quantity, HttpServletResponse response) throws Exception {
+        UUID cartId = this.getActiveCartId(token);
+        return this.removeProductFromCart(productId, cartId, quantity, response);
+    }
+
+    @Transactional
+    public String removeProductFromCart(UUID productId, UUID cartId, Integer quantity, HttpServletResponse response) throws Exception {
         Cart cart = cartRepository.findById(cartId).orElseThrow();
         Product product = productRepository.findById(productId).orElseThrow();
         CartItem item = cartItemRepository.findByCartAndProduct(cart, product).orElseThrow();
@@ -154,7 +166,9 @@ public class CartService {
     }
 
     @Transactional
-    public String addProductToCart(String token, UUID productId, UUID cartId, HttpServletResponse response) {
+    public String addProductToCart(String token, UUID productId, HttpServletResponse response) throws Exception {
+        UUID cartId = this.getActiveCartId(token);
+
         UserDTO userDTO = this.jwtUtil.extractUserDTOClaim(token);
         Cart cart = new Cart();
 
@@ -172,7 +186,9 @@ public class CartService {
         return product.getName();
     }
 
-    public String handleCartConflict(UUID activeCart, UUID cartId, Boolean shouldMerge, HttpServletResponse response) {
+    public String handleCartConflict(String token, UUID cartId, Boolean shouldMerge, HttpServletResponse response) throws Exception {
+        UUID activeCart = this.getActiveCartId(token);
+
         if (shouldMerge) {
             this.mergeCarts(activeCart, cartId);
             return "Cart merged successfully!";
@@ -189,22 +205,26 @@ public class CartService {
     }
 
     @Transactional
+    public void swapActiveCart(String token, UUID cartId, HttpServletResponse response) throws Exception {
+        UUID activeCartId = this.getActiveCartId(token);
+        this.swapActiveCart(activeCartId, cartId, response);
+    }
+
+    @Transactional
     public void swapActiveCart(UUID activeCart, UUID cartId, HttpServletResponse response) {
         this.toggleCartState(activeCart, "Swapped Cart");
         this.toggleCartState(cartId);
         addCartToCookie(cartId, response);
     }
 
-    public Boolean changeCartState(HttpServletResponse response, UUID activeCart, UUID cartId, String cartName) {
+    public Boolean changeCartState(HttpServletResponse response, String token, UUID cartId, String cartName) throws Exception {
+        UUID activeCart = this.getActiveCartId(token);
         Cart cart = this.cartRepository.findById(cartId).orElseThrow();
         
         // If the user has and active cart and is different from the target, which is is not enabled returns false (opens confirmation pop up)
         if (activeCart != null && !activeCart.toString().isBlank() && !cartId.equals(activeCart) && !cart.isEnabled()) return false;
 
         this.toggleCartState(cart, cartName);
-
-        cartCookieService.removeCookie(response);
-        if (cart.isEnabled()) cartCookieService.addCartCookieById(cartId, response);
 
         return true;
     }
@@ -238,5 +258,13 @@ public class CartService {
     public Boolean hasActiveCart(String token) {
         UserDTO userDTO = this.jwtUtil.extractUserDTOClaim(token);
         return this.cartRepository.countEnabledCartsByUser(userDTO.getId()) > 0;
+    }
+
+    public UUID getActiveCartId(String token) throws Exception{
+        UUID userId = this.jwtUtil.extractUserDTOClaim(token).getId();
+        Optional<CartProjection> cart = this.getActiveCartByUser(userId);
+        if (cart.isEmpty()) return null;//throw new Exception("There's no active cart for this user");
+
+        return cart.get().getId();
     }
 }
