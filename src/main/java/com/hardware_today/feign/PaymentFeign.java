@@ -6,7 +6,7 @@ import org.springframework.cloud.openfeign.FeignClient;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 
-@FeignClient(name = "ht-payment-ms", url= "${services.payment.url}")
+@FeignClient(name = "ht-payment-ms", url= "${ht.services.gateway.url}")
 public interface PaymentFeign {
     @PostMapping("/ht-payment-ms/payment")
     PaymentResponse payCart(@RequestBody PaymentDTO body);
