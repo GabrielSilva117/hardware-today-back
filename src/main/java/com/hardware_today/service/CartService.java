@@ -146,16 +146,16 @@ public class CartService {
     }
 
     @Transactional
-    public void addCartItem(Cart cart, Product product) {
+    public void addCartItem(Cart cart, Product product, int quantity) {
         try {
             CartItem newItem = cartItemRepository
                     .findByCartAndProduct(cart, product)
                     .map(entity -> {
                         int q = entity.getQuantity() != null ? entity.getQuantity() : 1;
-                        entity.setQuantity(q + 1);
+                        entity.setQuantity(q + quantity);
                         return cartItemRepository.save(entity);
                     })
-                    .orElseGet(() -> cartItemRepository.save(new CartItem(cart, product)));
+                    .orElseGet(() -> cartItemRepository.save(new CartItem(cart, product, quantity != 0 ? quantity : 1)));
 
             cart.getItems().add(newItem);
             cartRepository.save(cart);
@@ -166,7 +166,7 @@ public class CartService {
     }
 
     @Transactional
-    public String addProductToCart(String token, UUID productId, HttpServletResponse response) throws Exception {
+    public String addProductToCart(String token, UUID productId, int qtd, HttpServletResponse response) throws Exception {
         UUID cartId = this.getActiveCartId(token);
 
         UserDTO userDTO = this.jwtUtil.extractUserDTOClaim(token);
@@ -179,7 +179,7 @@ public class CartService {
         if (cart.getUser() == null) cart.setUser(entityManager.getReference(User.class, userDTO.getId()));
 
         cartRepository.save(cart);
-        this.addCartItem(cart, product);
+        this.addCartItem(cart, product, qtd);
 
         if (cartId == null || !cartId.equals(cart.getId())) addCartToCookie(cart.getId(), response);
 
