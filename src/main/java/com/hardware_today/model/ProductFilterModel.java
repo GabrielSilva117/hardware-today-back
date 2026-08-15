@@ -19,4 +19,5 @@ public class ProductFilterModel {
     private String brand;
     private String category;
     private Integer limit;
+    private String term;
 }

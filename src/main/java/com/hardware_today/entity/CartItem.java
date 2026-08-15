@@ -36,9 +36,9 @@ public class CartItem {
     @ColumnDefault("1")
     private Integer quantity = 1;
 
-    public CartItem(Cart cart, Product product) {
+    public CartItem(Cart cart, Product product, int quantity) {
         this.cart = cart;
         this.product = product;
-        this.quantity = 1;
+        this.quantity = quantity;
     }
 }

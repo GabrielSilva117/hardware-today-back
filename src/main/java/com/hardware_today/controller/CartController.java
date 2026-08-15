@@ -43,11 +43,11 @@ public class CartController {
 		}
 	}
 	
-	@PostMapping("/add/{productId}")
+	@PostMapping("/add/{productId}/{qtd}")
 	public ResponseEntity<String> addProductToCart(@CookieValue(value="access_token", required=false) String accessToken, 
-		@PathVariable UUID productId, HttpServletResponse response) {
+		@PathVariable UUID productId, @PathVariable int qtd, HttpServletResponse response) {
 		try {
-			return ResponseEntity.ok().body(cartService.addProductToCart(accessToken, productId, response));
+			return ResponseEntity.ok().body(cartService.addProductToCart(accessToken, productId, qtd, response));
 		} catch (Exception e) {
 			e.printStackTrace();
 			return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(e.getMessage());
