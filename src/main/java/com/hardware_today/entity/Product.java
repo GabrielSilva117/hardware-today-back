@@ -3,16 +3,17 @@ package com.hardware_today.entity;
 import java.util.UUID;
 
 
-import jakarta.persistence.Entity;
-import jakarta.persistence.GeneratedValue;
-import jakarta.persistence.GenerationType;
-import jakarta.persistence.Id;
-import jakarta.persistence.ManyToOne;
+import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
+import org.hibernate.annotations.Index;
 
+//, indexes = {
+//        @Index(name = "idx_product_brand", columnList = "brand_id"),
+//        @Index(name = "idx_product_category", columnList = "category_id")
+//}
 @Entity(name = "products")
 @Getter
 @Setter
@@ -28,6 +29,9 @@ public class Product {
 
     @ManyToOne(optional = false)
     private Brand brand;
+
+    @OneToOne(mappedBy = "product")
+    private ProductAssets assets;
 
     private String name;
 
