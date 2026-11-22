@@ -4,6 +4,8 @@ import java.util.List;
 import java.util.UUID;
 
 import com.hardware_today.projections.ProductProjection;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
@@ -17,6 +19,8 @@ import com.hardware_today.service.ProductService;
 @RestController
 @RequestMapping("/products")
 public class ProductController {
+	private static final Logger log = LoggerFactory.getLogger(ProductController.class);
+
 	private ProductService productService;
 	
 	public ProductController(ProductService productService) {
@@ -46,7 +50,7 @@ public class ProductController {
     	try {
     		return this.productService.getProductById(productId);
     	} catch (Exception err) {
-    		err.printStackTrace();
+    		log.error("Failed to fetch product {}", productId, err);
     		return null;
     	}
     }

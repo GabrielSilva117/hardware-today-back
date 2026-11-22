@@ -14,6 +14,8 @@ import com.hardware_today.publishers.NotificationPublisher;
 import com.hardware_today.publishers.PaymentPublisher;
 import com.hardware_today.repository.CartItemRepository;
 import lombok.RequiredArgsConstructor;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -32,6 +34,8 @@ import jakarta.servlet.http.HttpServletResponse;
 @Service
 @RequiredArgsConstructor
 public class CartService {
+	private static final Logger log = LoggerFactory.getLogger(CartService.class);
+
 	private final CartRepository cartRepository;
 	private final CartItemRepository cartItemRepository;
 	private final ProductRepository productRepository;
@@ -160,7 +164,7 @@ public class CartService {
             cart.getItems().add(newItem);
             cartRepository.save(cart);
         } catch (Exception e) {
-            e.printStackTrace();
+            log.error("Failed to add item for product {} to cart {}", product.getId(), cart.getId(), e);
         }
 
     }

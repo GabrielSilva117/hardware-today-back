@@ -3,6 +3,8 @@ package com.hardware_today.service;
 import java.util.Map;
 
 //import org.apache.;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.authentication.AuthenticationManager;
@@ -24,6 +26,8 @@ import jakarta.servlet.http.HttpServletResponse;
 
 @Service
 public class UserService {
+    private static final Logger log = LoggerFactory.getLogger(UserService.class);
+
     private final UserRepository userRepository;
     
     
@@ -53,7 +57,7 @@ public class UserService {
             userRepository.save(userEntity);
             return ResponseEntity.ok("User created successfully!");
         } catch (Exception e) {
-            e.printStackTrace();
+            log.error("Failed to create user", e);
             throw e;
         }
     }
