@@ -20,4 +20,17 @@ public class ProductFilterModel {
     private String category;
     private Integer limit;
     private String term;
+
+    /** True when the user actually set at least one filter criterion. */
+    public boolean hasCriteria() {
+        return minPrice != null
+                || maxPrice != null
+                || isFilled(brand)
+                || isFilled(category)
+                || isFilled(term);
+    }
+
+    private static boolean isFilled(String value) {
+        return value != null && !value.isBlank();
+    }
 }
