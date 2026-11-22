@@ -10,24 +10,15 @@ import java.util.UUID;
 @Setter
 @Getter
 public class CardPayment extends PaymentDTO {
-    private String number;
-    private String cvv;
-    private String cardHolderName;
-    private String expirationDate;
+    private String paymentMethodId;
 
     public CardPayment(
             BigDecimal amount,
             String currency,
             PaymentType type,
             UUID cartId,
-            String number,
-            String cvv,
-            String cardHolderName,
-            String expirationDate) {
+            String paymentMethodId) {
         super(amount, currency, type, cartId);
-        this.number = number;
-        this.cvv = cvv;
-        this.cardHolderName = cardHolderName;
-        this.expirationDate = expirationDate;
+        this.paymentMethodId = paymentMethodId;
     }
 }

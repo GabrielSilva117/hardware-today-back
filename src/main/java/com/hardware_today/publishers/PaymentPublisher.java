@@ -7,6 +7,8 @@ import com.hardware_today.enums.PaymentStatus;
 import com.hardware_today.enums.PaymentType;
 import com.hardware_today.feign.PaymentFeign;
 import lombok.RequiredArgsConstructor;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.amqp.rabbit.core.RabbitTemplate;
 import org.springframework.messaging.simp.SimpMessagingTemplate;
 import org.springframework.stereotype.Service;
@@ -16,6 +18,8 @@ import java.util.UUID;
 @Service
 @RequiredArgsConstructor
 public class PaymentPublisher {
+    private static final Logger log = LoggerFactory.getLogger(PaymentPublisher.class);
+
     private final RabbitTemplate rabbitTemplate;
     private final SimpMessagingTemplate messagingTemplate;
     private final PaymentFeign paymentFeign;
@@ -41,7 +45,7 @@ public class PaymentPublisher {
             }
             return res;
         } catch (Exception e) {
-            e.printStackTrace();
+            log.error("Failed to call payment microservice for cart {}", paymentDTO.getCartId(), e);
             return new PaymentResponse(PaymentStatus.FAILURE, null);
         }
     }
