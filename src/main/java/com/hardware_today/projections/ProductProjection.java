@@ -1,5 +1,6 @@
 package com.hardware_today.projections;
 
+import java.util.List;
 import java.util.UUID;
 
 public interface ProductProjection {
@@ -7,5 +8,5 @@ public interface ProductProjection {
 	String getName();
 	double getPrice();
 	CategoryProjection getCategory();
-	ImageAssetsProjection getAssets();
+	List<ImageProjection> getImages();
 }

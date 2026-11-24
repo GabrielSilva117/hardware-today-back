@@ -1,5 +1,7 @@
 package com.hardware_today.entity;
 
+import java.util.HashSet;
+import java.util.Set;
 import java.util.UUID;
 
 
@@ -30,8 +32,13 @@ public class Product {
     @ManyToOne(optional = false)
     private Brand brand;
 
-    @OneToOne(mappedBy = "product")
-    private ProductAssets assets;
+    @ManyToMany
+    @JoinTable(
+            name = "product_assets",
+            joinColumns = @JoinColumn(name = "product_id"),
+            inverseJoinColumns = @JoinColumn(name = "image_id")
+    )
+    private Set<Image> images = new HashSet<>();
 
     private String name;
 

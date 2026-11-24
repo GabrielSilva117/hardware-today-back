@@ -1,6 +1,6 @@
 package com.hardware_today.projections;
 
-public interface ImageAssetsProjection {
+public interface ImageProjection {
     String getMiniature();
     String getGallery();
     String getDetail();
