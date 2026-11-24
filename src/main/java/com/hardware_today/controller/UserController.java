@@ -2,6 +2,8 @@ package com.hardware_today.controller;
 
 import java.util.Map;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.HttpStatusCode;
@@ -23,6 +25,8 @@ import jakarta.servlet.http.HttpServletResponse;
 @RestController
 @RequestMapping("/user")
 public class UserController {
+    private static final Logger log = LoggerFactory.getLogger(UserController.class);
+
     private final UserService userService;
 
     @Autowired
@@ -40,7 +44,7 @@ public class UserController {
         try {
             return ResponseEntity.ok(userService.validateUser(credentials,response));
         } catch (Exception e) {
-            e.printStackTrace();
+            log.error("Login failed", e);
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Login failed! Try again...");
         }
     }
@@ -50,7 +54,7 @@ public class UserController {
     	try {
     		return ResponseEntity.ok(userService.logoutUser(response));
     	} catch (Exception e) {
-    		e.printStackTrace();
+    		log.error("Logout failed", e);
     		return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(e.getMessage());
     	}
     }
@@ -60,7 +64,7 @@ public class UserController {
         try {
             return userService.saveUser(user);
         } catch (Exception e) {
-            e.printStackTrace();
+            log.error("User registration failed", e);
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("User registration failed!");
         }
     }
@@ -70,7 +74,7 @@ public class UserController {
     	try {
     		return userService.createRole(roleName);
     	} catch (Exception e) {
-    		e.printStackTrace();
+    		log.error("Role registration failed", e);
     		return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Role registration failed!");
     	}
     }

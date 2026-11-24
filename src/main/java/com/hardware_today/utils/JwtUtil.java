@@ -5,6 +5,8 @@ import java.util.LinkedHashMap;
 import java.util.Map;
 import java.util.function.Function;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
@@ -21,7 +23,9 @@ import jakarta.servlet.http.HttpServletResponse;
 
 @Component
 public class JwtUtil {
-	private final JwtConfig jwtConfig; 
+	private static final Logger log = LoggerFactory.getLogger(JwtUtil.class);
+
+	private final JwtConfig jwtConfig;
 	private final ObjectMapper objMapper;
 	private static final long access_exp_time = 1000 * 60 * 15; // 10 min
 	private static final long refresh_exp_time = 1000 * 60 * 60 * 24 * 7; // 7 days
@@ -53,7 +57,7 @@ public class JwtUtil {
     		Map<String, Object> userMap = extractClaim(token, claims -> claims.get("user", LinkedHashMap.class));
     		return objMapper.convertValue(userMap, UserDTO.class);    		
 		} catch (Exception e) {
-			e.printStackTrace();
+			log.error("Failed to extract user claim from token", e);
 			return null;
 		}
     }
