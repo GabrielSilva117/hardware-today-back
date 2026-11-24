@@ -5,6 +5,8 @@ import java.util.UUID;
 import com.hardware_today.dto.CartStateActionDTO;
 import com.hardware_today.dto.CartStateToggle;
 import com.hardware_today.dto.UserCartsResDTO;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -17,6 +19,8 @@ import jakarta.servlet.http.HttpServletResponse;
 @RestController
 @RequestMapping("/cart")
 public class CartController {
+	private static final Logger log = LoggerFactory.getLogger(CartController.class);
+
 	private final CartService cartService;
 	
 	public CartController(CartService cartService) {
@@ -26,9 +30,9 @@ public class CartController {
 	@GetMapping("/{id}")
 	public ResponseEntity<CartProjection> getCartById(@PathVariable UUID id) {
 		try {
-			return ResponseEntity.ok().body(cartService.getCartById(id));	
+			return ResponseEntity.ok().body(cartService.getCartById(id));
 		} catch (Exception e) {
-			e.printStackTrace();
+			log.error("Failed to fetch cart {}", id, e);
 			return null;
 		}
 	}
@@ -38,7 +42,7 @@ public class CartController {
 		try {
 			return ResponseEntity.ok().body(cartService.extractUserCartByToken(accessToken));
 		} catch (Exception e) {
-			e.printStackTrace();
+			log.error("Failed to fetch cart for user", e);
 			return null;
 		}
 	}
@@ -49,7 +53,7 @@ public class CartController {
 		try {
 			return ResponseEntity.ok().body(cartService.addProductToCart(accessToken, productId, qtd, response));
 		} catch (Exception e) {
-			e.printStackTrace();
+			log.error("Failed to add product {} to cart", productId, e);
 			return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(e.getMessage());
 		}
 	}
@@ -60,7 +64,7 @@ public class CartController {
         try {
             return ResponseEntity.ok().body(cartService.changeCartState(response, token, cartId, body.getCartName()));
         } catch (Exception e) {
-            e.printStackTrace();
+            log.error("Failed to change state for cart {}", cartId, e);
             return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(null);
         }
     }
@@ -71,7 +75,7 @@ public class CartController {
         try {
             return ResponseEntity.ok().body(cartService.handleCartConflict(token, body.getCartToChange(), body.getShouldMerge(), response));
         } catch (Exception e) {
-            e.printStackTrace();
+            log.error("Failed to resolve cart conflict for cart {}", body.getCartToChange(), e);
             return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(null);
         }
     }
@@ -82,7 +86,7 @@ public class CartController {
 		try {
 			return ResponseEntity.ok().body(cartService.removeProductFromCart(productId, token, quantity, response));
 		} catch (Exception e) {
-			e.printStackTrace();
+			log.error("Failed to remove product {} from cart", productId, e);
 			return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(null);
 		}
 	}
@@ -93,24 +97,30 @@ public class CartController {
 		try {
 			return ResponseEntity.ok().body(cartService.deleteCart(token, true, response));
 		} catch (Exception e) {
-			e.printStackTrace();
+			log.error("Failed to delete active cart", e);
 			return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(null);
 		}
 	}
 	
 	@DeleteMapping("/{cartId}")
-	public ResponseEntity<String> deleteCartById(@CookieValue(value="access_token", required=false) UUID activeCartId, 
+	public ResponseEntity<String> deleteCartById(@CookieValue(value="access_token", required=false) String token,
 			@PathVariable UUID cartId, HttpServletResponse response) {
 		try {
-			return ResponseEntity.ok().body(cartService.deleteCart(cartId, activeCartId.equals(cartId), response));
+			UUID activeCartId = cartService.getActiveCartId(token);
+			return ResponseEntity.ok().body(cartService.deleteCart(cartId, cartId.equals(activeCartId), response));
 		} catch (Exception e) {
-			e.printStackTrace();
+			log.error("Failed to delete cart {}", cartId, e);
 			return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(e.getMessage());
 		}
 	}
 
     @GetMapping(value = {"", "/"})
-    public ResponseEntity<UUID> getActiveCartId(@CookieValue(value="access_token", required = false) UUID cartId) {
-        return ResponseEntity.ok().body(cartId);
+    public ResponseEntity<UUID> getActiveCartId(@CookieValue(value="access_token", required = false) String token) {
+        try {
+            return ResponseEntity.ok().body(cartService.getActiveCartId(token));
+        } catch (Exception e) {
+            log.error("Failed to fetch active cart id", e);
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(null);
+        }
     }
 }
